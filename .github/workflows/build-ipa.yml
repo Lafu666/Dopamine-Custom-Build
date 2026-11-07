@@ -51,7 +51,14 @@ jobs:
           # _external/include 里的 libjailbreak 头文件可能不全，用源码补齐
           mkdir -p upstream/BaseBin/.include/libjailbreak
           cp upstream/BaseBin/libjailbreak/src/*.h upstream/BaseBin/.include/libjailbreak/
-          if [ -f upstream/BaseBin/XPF/src/xpf.h ]; then mkdir -p upstream/BaseBin/.include/xpf; cp upstream/BaseBin/XPF/src/xpf.h upstream/BaseBin/.include/xpf/; fi
+          if [ -d upstream/BaseBin/ChOma ]; then
+            mkdir -p upstream/BaseBin/.include/choma
+            find upstream/BaseBin/ChOma -name "*.h" -not -path "*/output/*" -exec cp -f {} upstream/BaseBin/.include/choma/ \;
+          fi
+          if [ -d upstream/BaseBin/XPF ]; then
+            mkdir -p upstream/BaseBin/.include/xpf
+            find upstream/BaseBin/XPF -name "*.h" -not -path "*/output/*" -exec cp -f {} upstream/BaseBin/.include/xpf/ \;
+          fi
           ls upstream/BaseBin/.include/libjailbreak | head -20
           ls upstream/BaseBin/.include
 
