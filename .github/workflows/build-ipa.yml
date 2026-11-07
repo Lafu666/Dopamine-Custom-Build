@@ -1,12 +1,11 @@
 name: Build Dopamine IPA
 
-# 这个仓库本身不含 Dopamine 源码，只放补丁 + 预装 deb + 本工作流。
-# 构建时实时拉取上游 3.x，打补丁，编译，产出 Dopamine.ipa。
+# 仓库里只放补丁 + 预装 deb + 本工作流；构建时实时拉取上游 3.x，打补丁后编译出 Dopamine.ipa。
 on:
   workflow_dispatch:
     inputs:
       mode:
-        description: '构建模式（app-only 约 5 分钟 / full 约 30 分钟）'
+        description: '构建模式（app-only 约 6 分钟 / full 约 30 分钟）'
         required: true
         default: app-only
         type: choice
@@ -34,18 +33,23 @@ jobs:
       - name: Checkout 构建仓库
         uses: actions/checkout@v4
 
-      - name: 拉取上游源码并打补丁
+      - name: 拉取上游源码 + 子模块，打补丁
         run: |
           set -euo pipefail
           git clone --depth 1 --branch "${{ inputs.upstream_ref }}" https://github.com/opa334/Dopamine.git upstream
           cd upstream
           echo "上游 commit: $(git rev-parse HEAD)"
-          if [ "${{ inputs.mode }}" = "full" ]; then
-            git submodule update --init --recursive --depth 1
-          fi
+          git submodule update --init --recursive --depth 1
           git apply -v "$GITHUB_WORKSPACE/patches/dopamine-3.x-custom.patch"
           cp "$GITHUB_WORKSPACE"/debs/*.deb Application/Dopamine/Resources/
           ls -lh Application/Dopamine/Resources/*.deb
+
+      - name: 准备 BaseBin 头文件与预置库
+        run: |
+          set -euo pipefail
+          make -C upstream/BaseBin .build .include
+          ls upstream/BaseBin/.include
+          ls -lh upstream/BaseBin/.build/libjailbreak.dylib
 
       - name: 安装 ldid
         run: |
@@ -53,7 +57,7 @@ jobs:
           command -v ldid >/dev/null 2>&1 || brew install ldid || true
           ldid -h >/dev/null 2>&1 && echo "ldid OK" || echo "::warning::ldid 不可用"
 
-      - name: 取上游构建产物 basebin / 内置 deb
+      - name: 取上游 basebin.tar / 内置 deb
         if: inputs.mode == 'app-only'
         run: |
           set -euo pipefail
@@ -61,8 +65,8 @@ jobs:
           unzip -q upstream.ipa -d up
           APP=up/Payload/Dopamine.app
           test -f "$APP/basebin.tar" || { echo "上游 IPA 缺少 basebin.tar，请改用 mode=full"; exit 1; }
-          mkdir -p upstream/BaseBin upstream/Packages/libkrw-provider upstream/Packages/basebin-link upstream/Packages/libroot
           cp "$APP/basebin.tar" "$APP/basebin.tc" upstream/BaseBin/
+          mkdir -p upstream/Packages/libkrw-provider upstream/Packages/basebin-link upstream/Packages/libroot
           for d in "$APP"/*.deb; do
             n="$(basename "$d")"
             case "$n" in
@@ -71,7 +75,7 @@ jobs:
               libroot*)      cp "$d" upstream/Packages/libroot/ ;;
             esac
           done
-          ls -lh upstream/BaseBin upstream/Packages/*/*.deb
+          ls -lh upstream/BaseBin/basebin.tar upstream/Packages/*/*.deb
 
       - name: 编译 BaseBin + Packages（full）
         if: inputs.mode == 'full'
@@ -82,7 +86,7 @@ jobs:
           export PATH="$THEOS/bin:$PATH"
           [ -x "$THEOS/bin/ldid" ] || { for f in "$THEOS"/bin/ldid_macosx_*; do [ -x "$f" ] && cp "$f" "$THEOS/bin/ldid" && break; done; }
           ncpu="$(sysctl -n hw.ncpu)"
-          make -C upstream/BaseBin  -j"$ncpu" 2>&1 | tail -40
+          make -C upstream/BaseBin  -j"$ncpu" 2>&1 | tail -60
           make -C upstream/Packages -j"$ncpu" 2>&1 | tail -20
 
       - name: 编译 App 并打包 IPA
