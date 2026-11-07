@@ -117,6 +117,13 @@ jobs:
           make -C upstream/BaseBin  -j"$ncpu" 2>&1 | tail -60
           make -C upstream/Packages -j"$ncpu" 2>&1 | tail -20
 
+      - name: 适配签名（homebrew ldid 的 -s 有 bug，改用 codesign 签 bundle）
+        run: |
+          set -euo pipefail
+          MF=upstream/Application/Makefile
+          sed -i '' 's@ldid -s build/Build/Products/Debug-iphoneos/Dopamine.app@codesign --force --deep --sign - --entitlements Dopamine/Dopamine.entitlements build/Build/Products/Debug-iphoneos/Dopamine.app@' "$MF"
+          grep -n "ldid\|codesign" "$MF"
+
       - name: 编译 App 并打包 IPA
         run: |
           set -euo pipefail
