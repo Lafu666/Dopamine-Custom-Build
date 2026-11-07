@@ -202,7 +202,7 @@ index c22f420..4395664 100644
  }
  
 diff --git a/Application/Dopamine/UI/DOMainViewController.m b/Application/Dopamine/UI/DOMainViewController.m
-index 5ccc068..9146b3b 100644
+index 5ccc068..f3fe889 100644
 --- a/Application/Dopamine/UI/DOMainViewController.m
 +++ b/Application/Dopamine/UI/DOMainViewController.m
 @@ -15,6 +15,7 @@
@@ -213,7 +213,7 @@ index 5ccc068..9146b3b 100644
  #import <libjailbreak/libjailbreak.h>
  
  @interface DOMainViewController ()
-@@ -24,6 +25,10 @@
+@@ -24,6 +25,11 @@
  @property DOActionMenuButton *updateButton;
  @property(nonatomic) BOOL hideStatusBar;
  @property(nonatomic) BOOL hideHomeIndicator;
@@ -221,10 +221,11 @@ index 5ccc068..9146b3b 100644
 +@property(nonatomic) UILabel *versionStatusLabel;
 +@property(nonatomic) UILabel *uptimeStatusLabel;
 +@property(nonatomic) NSTimer *uptimeTimer;
++@property(nonatomic) BOOL didFade;
  
  @end
  
-@@ -32,6 +37,7 @@
+@@ -32,6 +38,7 @@
  - (void)viewDidLoad {
      [super viewDidLoad];
      [self setupStack];
@@ -232,7 +233,21 @@ index 5ccc068..9146b3b 100644
  }
  
  -(void)setupStack
-@@ -135,6 +141,7 @@
+@@ -94,11 +101,13 @@
+         [UIAction actionWithTitle:DOLocalizedString(@"Menu_Restart_SpringBoard_Title") image:[UIImage systemImageNamed:@"arrow.clockwise" withConfiguration:[DOGlobalAppearance smallIconImageConfiguration]] identifier:@"respring" handler:^(__kindof UIAction * _Nonnull action) {
+             [self fadeToBlack:^{
+                 [[DOEnvironmentManager sharedManager] respring];
++                [self scheduleRestoreFromFade];
+             }];
+         }],
+         [UIAction actionWithTitle:DOLocalizedString(@"Menu_Reboot_Userspace_Title") image:[UIImage systemImageNamed:@"arrow.clockwise.circle" withConfiguration:[DOGlobalAppearance smallIconImageConfiguration]] identifier:@"reboot-userspace" handler:^(__kindof UIAction * _Nonnull action) {
+             [self fadeToBlack:^{
+                 [[DOEnvironmentManager sharedManager] rebootUserspace];
++                [self scheduleRestoreFromFade];
+             }];
+         }],
+         [UIAction actionWithTitle:DOLocalizedString(@"Menu_Credits_Title") image:[UIImage systemImageNamed:@"info.circle" withConfiguration:[DOGlobalAppearance smallIconImageConfiguration]] identifier:@"credits" handler:^(__kindof UIAction * _Nonnull action) {
+@@ -135,6 +144,7 @@
      
      self.jailbreakBtn = [[DOJailbreakButton alloc] initWithAction: [UIAction actionWithTitle:jailbreakButtonTitle image:jailbreakButtonImage identifier:@"jailbreak" handler:^(__kindof UIAction * _Nonnull action) {
          [actionView hide];
@@ -240,9 +255,12 @@ index 5ccc068..9146b3b 100644
          [self.jailbreakBtn expandButton: self.jailbreakButtonConstraints];
  
          self.updateButton.userInteractionEnabled = NO;
-@@ -194,6 +201,134 @@
+@@ -193,7 +203,137 @@
+ - (void)viewWillAppear:(BOOL)animated
  {
      [super viewWillAppear:animated];
++    // Coming back from a respring that did not happen, make sure the UI is visible again
++    [self restoreFromFade];
      [self.jailbreakBtn.button setTitle:[self jailbreakButtonTitle] forState:UIControlStateNormal];
 +    self.statusStack.hidden = self.jailbreakBtn.didExpand;
 +    [self refreshStatusInfo];
@@ -375,6 +393,68 @@ index 5ccc068..9146b3b 100644
  }
  
  - (void)startJailbreak
+@@ -354,10 +494,20 @@
+ 
+ - (void)fadeToBlack:(void (^)(void))completion
+ {
+-    static bool didFade = false;
+-    if (didFade)
++    // NOTE: this used to be a `static bool`, which meant that after the jailbreak
++    // flow had used it once, every later call (respring / reboot userspace) returned
++    // immediately and did nothing at all.
++    if (self.didFade)
+         return;
+-    didFade = true;
++
++    self.didFade = YES;
++
++    // Only guard against double taps while the fade animation is running
++    __weak typeof(self) weakSelf = self;
++    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
++        weakSelf.didFade = NO;
++    });
++
+     UIView *mainView = self.parentViewController.view;
+     float deviceCornerRadius = [[[UIScreen mainScreen] valueForKey:@"_displayCornerRadius"] floatValue];
+ 
+@@ -375,6 +525,37 @@
+     }];
+ }
+ 
++// Called when respring / reboot userspace did not actually bring us down.
++// Restores the UI instead of leaving the app on a black screen.
++- (void)restoreFromFade
++{
++    UIView *mainView = self.parentViewController.view;
++    if (!mainView) {
++        return;
++    }
++
++    BOOL isFaded = (mainView.alpha < 0.99) || !CGAffineTransformEqualToTransform(mainView.transform, CGAffineTransformIdentity);
++    if (!isFaded) {
++        return;
++    }
++
++    self.didFade = NO;
++    self.hideStatusBar = NO;
++
++    [UIView animateWithDuration:0.35 animations:^{
++        mainView.transform = CGAffineTransformIdentity;
++        mainView.alpha = 1.0;
++    }];
++}
++
++- (void)scheduleRestoreFromFade
++{
++    __weak typeof(self) weakSelf = self;
++    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(4.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
++        [weakSelf restoreFromFade];
++    });
++}
++
+ #pragma mark - Action Menu Delegate
+ 
+ - (BOOL)actionMenuShowsChevronForAction:(UIAction *)action
 diff --git a/Application/Dopamine/UI/DONavigationController.h b/Application/Dopamine/UI/DONavigationController.h
 index afc94e0..4602b55 100644
 --- a/Application/Dopamine/UI/DONavigationController.h
@@ -390,10 +470,10 @@ index afc94e0..4602b55 100644
  
  NS_ASSUME_NONNULL_END
 diff --git a/Application/Dopamine/UI/DONavigationController.m b/Application/Dopamine/UI/DONavigationController.m
-index 164cf79..f29176a 100644
+index 164cf79..f681021 100644
 --- a/Application/Dopamine/UI/DONavigationController.m
 +++ b/Application/Dopamine/UI/DONavigationController.m
-@@ -10,8 +10,9 @@
+@@ -10,12 +10,14 @@
  #import "DOModalBackAction.h"
  #import "DOGlobalAppearance.h"
  #import "DOThemeManager.h"
@@ -404,7 +484,12 @@ index 164cf79..f29176a 100644
  
  @property (nonatomic) UIImageView *backgroundImageView;
  @property (nonatomic) DOMainViewController *mainView;
-@@ -33,15 +34,15 @@
+ @property (nonatomic) DOModalBackAction *backAction;
++@property (nonatomic) BOOL backgroundDimmed;
+ 
+ @end
+ 
+@@ -33,15 +35,15 @@
      [self pushViewController:(self.mainView = [[DOMainViewController alloc] init]) animated:NO];
      [self setDelegate:self];
      [self setOverrideUserInterfaceStyle:UIUserInterfaceStyleDark];
@@ -423,21 +508,61 @@ index 164cf79..f29176a 100644
      self.backgroundImageView.contentMode = UIViewContentModeScaleAspectFill;
      self.backgroundImageView.translatesAutoresizingMaskIntoConstraints = NO;
      self.backgroundImageView.userInteractionEnabled = NO;
-@@ -81,6 +82,148 @@
+@@ -74,6 +76,7 @@
+ 
+ - (void)setBackgroundDimmed:(BOOL)dimmed
+ {
++    self.backgroundDimmed = dimmed;
+     [UIView animateWithDuration:0.3 animations:^{
+         self.backgroundImageView.alpha = dimmed ? 0.4 : 1;
+     }];
+@@ -81,6 +84,229 @@
      self.backAction.hidden = !dimmed;
  }
  
 +- (void)reloadBackgroundAnimated:(BOOL)animated
 +{
 +    UIImage *backgroundImage = [[DOThemeManager sharedInstance] currentBackgroundImage];
-+    if (!animated) {
-+        self.backgroundImageView.image = backgroundImage;
++    if (!backgroundImage) {
++        backgroundImage = [[[DOThemeManager sharedInstance] enabledTheme] image];
++    }
++
++    CGFloat targetAlpha = self.backgroundDimmed ? 0.4 : 1.0;
++    BOOL imageChanged = (self.backgroundImageView.image != backgroundImage);
++
++    // Assign the image directly. UIView transitionWithView: does not animate
++    // UIImageView.image reliably and could leave the old image on screen.
++    [CATransaction begin];
++    [CATransaction setDisableActions:YES];
++    self.backgroundImageView.image = backgroundImage;
++    [CATransaction commit];
++
++    if (!imageChanged) {
++        self.backgroundImageView.alpha = targetAlpha;
++        [self.backgroundImageView setNeedsDisplay];
 +        return;
 +    }
 +
-+    [UIView transitionWithView:self.backgroundImageView duration:0.35 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
-+        self.backgroundImageView.image = backgroundImage;
-+    } completion:nil];
++    if (!animated) {
++        self.backgroundImageView.alpha = targetAlpha;
++        [self.backgroundImageView setNeedsDisplay];
++        return;
++    }
++
++    // Short fade in so the change is visible without depending on transition snapshots
++    self.backgroundImageView.alpha = 0.2;
++    [UIView animateWithDuration:0.28 animations:^{
++        self.backgroundImageView.alpha = targetAlpha;
++    }];
++}
++
++- (void)viewDidLayoutSubviews
++{
++    [super viewDidLayoutSubviews];
++    // Make sure the background always stays below the navigation content
++    if (self.backgroundImageView.superview == self.view) {
++        [self.view sendSubviewToBack:self.backgroundImageView];
++    }
 +}
 +
 +#pragma mark - Background Menu
@@ -522,30 +647,79 @@ index 164cf79..f29176a 100644
 +{
 +    UIImage *selectedImage = info[UIImagePickerControllerOriginalImage];
 +
++    // Do not run the save logic inside the dismiss completion: the completion can be
++    // skipped when the picker is dismissed in an unexpected way, which made the new
++    // background silently never get applied.
++    [picker dismissViewControllerAnimated:YES completion:nil];
++
++    if (!selectedImage) {
++        return;
++    }
++
++    [self applyCustomBackgroundImage:selectedImage];
++}
++
++- (void)applyCustomBackgroundImage:(UIImage *)image
++{
 +    __weak typeof(self) weakSelf = self;
-+    [picker dismissViewControllerAnimated:YES completion:^{
-+        if (!selectedImage) {
-+            return;
-+        }
 +
-+        // Encoding, downscaling and blurring can take a moment for large photos,
-+        // so keep that off the main thread
-+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-+            NSError *error = nil;
-+            BOOL success = [[DOThemeManager sharedInstance] setCustomBackgroundImage:selectedImage error:&error];
++    // Encoding, downscaling and blurring can take a moment for large photos,
++    // so keep that off the main thread
++    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
++        NSError *error = nil;
++        BOOL success = [[DOThemeManager sharedInstance] setCustomBackgroundImage:image error:&error];
 +
-+            dispatch_async(dispatch_get_main_queue(), ^{
-+                if (!success) {
-+                    UIAlertController *alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Background_Error_Title")
-+                                                                                   message:error.localizedDescription
-+                                                                            preferredStyle:UIAlertControllerStyleAlert];
-+                    [alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Button_Close") style:UIAlertActionStyleDefault handler:nil]];
-+                    [weakSelf presentViewController:alert animated:YES completion:nil];
-+                    return;
-+                }
++        dispatch_async(dispatch_get_main_queue(), ^{
++            if (!success) {
++                UIAlertController *alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Background_Error_Title")
++                                                                               message:error.localizedDescription
++                                                                        preferredStyle:UIAlertControllerStyleAlert];
++                [alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Button_Close") style:UIAlertActionStyleDefault handler:nil]];
++                [weakSelf presentViewController:alert animated:YES completion:nil];
++                return;
++            }
++
++            // Let the dismiss animation finish first, otherwise the refresh happens
++            // while the picker still covers the screen
++            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.35 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
 +                [weakSelf reloadBackgroundAnimated:YES];
++                [weakSelf showBackgroundUpdatedToast];
 +            });
 +        });
++    });
++}
++
++- (void)showBackgroundUpdatedToast
++{
++    UILabel *toast = [[UILabel alloc] init];
++    toast.text = DOLocalizedString(@"Background_Updated");
++    toast.font = [UIFont systemFontOfSize:13 weight:UIFontWeightMedium];
++    toast.textColor = [UIColor whiteColor];
++    toast.textAlignment = NSTextAlignmentCenter;
++    toast.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.55];
++    toast.layer.cornerRadius = 15;
++    toast.layer.cornerCurve = kCACornerCurveContinuous;
++    toast.clipsToBounds = YES;
++    toast.alpha = 0;
++    toast.translatesAutoresizingMaskIntoConstraints = NO;
++
++    [self.view addSubview:toast];
++
++    [NSLayoutConstraint activateConstraints:@[
++        [toast.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
++        [toast.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor constant:-72],
++        [toast.heightAnchor constraintEqualToConstant:30],
++        [toast.widthAnchor constraintGreaterThanOrEqualToConstant:176],
++    ]];
++
++    [UIView animateWithDuration:0.2 animations:^{
++        toast.alpha = 1.0;
++    } completion:^(BOOL finished) {
++        [UIView animateWithDuration:0.3 delay:1.4 options:0 animations:^{
++            toast.alpha = 0.0;
++        } completion:^(BOOL finished2) {
++            [toast removeFromSuperview];
++        }];
 +    }];
 +}
 +
@@ -572,6 +746,49 @@ index 164cf79..f29176a 100644
  #pragma mark - Delegate
  
  - (id<UIViewControllerAnimatedTransitioning>)navigationController:(UINavigationController *)navigationController
+@@ -96,7 +322,15 @@
+ 
+ - (void)navigationController:(UINavigationController *)navigationController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated
+ {
+-    [self setBackgroundDimmed:![viewController isKindOfClass:[DOMainViewController class]]];
++    BOOL showsMainView = [viewController isKindOfClass:[DOMainViewController class]];
++    [self setBackgroundDimmed:!showsMainView];
++
++    // The theme can be changed from the settings screen, refresh without animation
++    // when we come back to the home screen so the new theme is always visible
++    if (showsMainView) {
++        [self reloadBackgroundAnimated:NO];
++    }
++
+     [self.backAction setIgnoreFrame:[self _frameForViewController:viewController]];
+ }
+ 
+diff --git a/Application/Dopamine/UI/Settings/DOSettingsController.m b/Application/Dopamine/UI/Settings/DOSettingsController.m
+index b0ece9d..7f47d3f 100644
+--- a/Application/Dopamine/UI/Settings/DOSettingsController.m
++++ b/Application/Dopamine/UI/Settings/DOSettingsController.m
+@@ -17,6 +17,7 @@
+ #import "DOPSListItemsController.h"
+ #import "DOPSExploitListItemsController.h"
+ #import "DOThemeManager.h"
++#import "DONavigationController.h"
+ #import "DOSceneDelegate.h"
+ #import "DOPSJetsamListItemsController.h"
+ #import "DOButtonCell.h"
+@@ -401,6 +402,13 @@
+ {
+     NSString *key = [specifier propertyForKey:@"key"];
+     [[DOPreferenceManager sharedManager] setPreferenceValue:value forKey:key];
++
++    // Changing the theme should update the background right away
++    if ([key isEqualToString:@"theme"]) {
++        if ([self.navigationController isKindOfClass:[DONavigationController class]]) {
++            [(DONavigationController *)self.navigationController reloadBackgroundAnimated:YES];
++        }
++    }
+ }
+ 
+ - (id)readPreferenceValue:(PSSpecifier*)specifier
 diff --git a/Application/Dopamine/UI/Themes/DOThemeManager.h b/Application/Dopamine/UI/Themes/DOThemeManager.h
 index 426c8a7..91c4bc6 100644
 --- a/Application/Dopamine/UI/Themes/DOThemeManager.h
@@ -613,16 +830,18 @@ index 426c8a7..91c4bc6 100644
  
  NS_ASSUME_NONNULL_END
 diff --git a/Application/Dopamine/UI/Themes/DOThemeManager.m b/Application/Dopamine/UI/Themes/DOThemeManager.m
-index 1b38976..7f06c48 100644
+index 1b38976..2210997 100644
 --- a/Application/Dopamine/UI/Themes/DOThemeManager.m
 +++ b/Application/Dopamine/UI/Themes/DOThemeManager.m
-@@ -7,6 +7,18 @@
+@@ -7,6 +7,20 @@
  
  #import "DOThemeManager.h"
  #import "DOPreferenceManager.h"
 +#import "UIImage+Blur.h"
++#import <CoreImage/CoreImage.h>
 +
 +#define CUSTOM_BACKGROUND_FILE_NAME         @"custom_theme_background.jpg"
++#define CUSTOM_BACKGROUND_RENDERED_FILE_NAME @"custom_theme_background_rendered.jpg"
 +#define CUSTOM_BACKGROUND_MAX_DIMENSION     2000.0
 +#define CUSTOM_BACKGROUND_DEFAULT_BLUR      18.0
 +#define CUSTOM_BACKGROUND_DIM_ALPHA         0.22
@@ -635,7 +854,7 @@ index 1b38976..7f06c48 100644
  
  @implementation DOThemeManager
  
-@@ -85,5 +97,149 @@
+@@ -85,5 +99,241 @@
      return [UIColor colorWithRed:red green:green blue:blue alpha:currentAlpha * alpha];
  }
  
@@ -645,6 +864,12 @@ index 1b38976..7f06c48 100644
 +{
 +    NSString *documentsPath = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"];
 +    return [documentsPath stringByAppendingPathComponent:CUSTOM_BACKGROUND_FILE_NAME];
++}
++
++- (NSString *)renderedBackgroundPath
++{
++    NSString *documentsPath = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"];
++    return [documentsPath stringByAppendingPathComponent:CUSTOM_BACKGROUND_RENDERED_FILE_NAME];
 +}
 +
 +- (BOOL)hasCustomBackground
@@ -672,10 +897,26 @@ index 1b38976..7f06c48 100644
 +    UIImage *customImage = [self customBackgroundImage];
 +    if (customImage) {
 +        @synchronized (self) {
-+            if (!gCustomBackgroundRendered) {
-+                gCustomBackgroundRendered = [self renderBackgroundFromImage:customImage];
++            if (gCustomBackgroundRendered) {
++                return gCustomBackgroundRendered;
 +            }
-+            return gCustomBackgroundRendered;
++        }
++
++        // The blurred version is cached on disk so app launches do not have to
++        // run the blur again on the main thread
++        UIImage *cachedImage = [UIImage imageWithContentsOfFile:[self renderedBackgroundPath]];
++        if (!cachedImage) {
++            // Old install / missing cache, render now and write the cache
++            cachedImage = [self renderBackgroundFromImage:customImage] ?: customImage;
++            NSData *renderedData = UIImageJPEGRepresentation(cachedImage, 0.9);
++            if (renderedData) {
++                [renderedData writeToFile:[self renderedBackgroundPath] atomically:YES];
++            }
++        }
++
++        @synchronized (self) {
++            gCustomBackgroundRendered = cachedImage;
++            return gCustomBackgroundRendered ?: customImage;
 +        }
 +    }
 +    return [[self enabledTheme] image];
@@ -708,7 +949,12 @@ index 1b38976..7f06c48 100644
 +    @synchronized (self) {
 +        gCustomBackgroundRaw = preparedImage;
 +        // Pre-render here so the (expensive) blur does not have to happen on the main thread
-+        gCustomBackgroundRendered = [self renderBackgroundFromImage:preparedImage];
++        gCustomBackgroundRendered = [self renderBackgroundFromImage:preparedImage] ?: preparedImage;
++    }
++
++    NSData *renderedData = UIImageJPEGRepresentation(gCustomBackgroundRendered, 0.9);
++    if (renderedData) {
++        [renderedData writeToFile:[self renderedBackgroundPath] atomically:YES];
 +    }
 +
 +    return YES;
@@ -721,6 +967,8 @@ index 1b38976..7f06c48 100644
 +        gCustomBackgroundRaw = nil;
 +        gCustomBackgroundRendered = nil;
 +    }
++
++    [[NSFileManager defaultManager] removeItemAtPath:[self renderedBackgroundPath] error:nil];
 +
 +    if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
 +        return YES;
@@ -762,13 +1010,28 @@ index 1b38976..7f06c48 100644
 +
 +- (UIImage *)renderBackgroundFromImage:(UIImage *)image
 +{
-+    UIImage *blurredImage = [image imageWithBlur:[self customBackgroundBlurRadius]];
-+    if (!blurredImage) {
++    if (!image.CGImage) {
 +        return image;
++    }
++
++    // The background is blurred anyway, so work on a screen sized copy. Blurring a
++    // 2000x2000 image costs a lot of time and memory for no visual benefit.
++    CGFloat screenScale = [UIScreen mainScreen].scale > 0 ? [UIScreen mainScreen].scale : 2.0;
++    CGSize screenSize = [UIScreen mainScreen].bounds.size;
++    CGFloat renderMaxDimension = MAX(screenSize.width, screenSize.height) * screenScale * 1.2;
++    UIImage *workingImage = [self normalizedImage:image maxDimension:renderMaxDimension];
++
++    UIImage *blurredImage = [self blurredImage:workingImage radius:[self customBackgroundBlurRadius]];
++    if (!blurredImage) {
++        blurredImage = workingImage;
 +    }
 +
 +    // Dim the image a little so the white UI stays readable on bright photos
 +    CGSize size = blurredImage.size;
++    if (size.width < 1 || size.height < 1) {
++        return blurredImage;
++    }
++
 +    UIGraphicsBeginImageContextWithOptions(size, NO, 1.0);
 +    [blurredImage drawInRect:CGRectMake(0, 0, size.width, size.height)];
 +    [[UIColor colorWithWhite:0.0 alpha:CUSTOM_BACKGROUND_DIM_ALPHA] setFill];
@@ -779,6 +1042,54 @@ index 1b38976..7f06c48 100644
 +    return renderedImage ?: blurredImage;
 +}
 +
++// Safe gaussian blur: never throws, never returns a nil image. The shared
++// -[UIImage imageWithBlur:] crashes when CIContext fails to create a CGImage.
++- (nullable UIImage *)blurredImage:(UIImage *)image radius:(CGFloat)radius
++{
++    CGImageRef cgImage = image.CGImage;
++    if (!cgImage) {
++        return image;
++    }
++
++    @try {
++        CIImage *inputImage = [CIImage imageWithCGImage:cgImage];
++        if (!inputImage) {
++            return image;
++        }
++
++        CIFilter *filter = [CIFilter filterWithName:@"CIGaussianBlur"];
++        if (!filter) {
++            return image;
++        }
++        [filter setDefaults];
++        [filter setValue:[inputImage imageByClampingToExtent] forKey:kCIInputImageKey];
++        [filter setValue:@(radius) forKey:kCIInputRadiusKey];
++
++        CIImage *outputImage = [filter outputImage];
++        if (!outputImage) {
++            return image;
++        }
++        outputImage = [outputImage imageByCroppingToRect:[inputImage extent]];
++
++        static CIContext *context = nil;
++        static dispatch_once_t onceToken;
++        dispatch_once(&onceToken, ^{
++            context = [CIContext contextWithOptions:nil];
++        });
++
++        CGImageRef outputCGImage = [context createCGImage:outputImage fromRect:[inputImage extent]];
++        if (!outputCGImage) {
++            return image;
++        }
++
++        UIImage *result = [UIImage imageWithCGImage:outputCGImage scale:image.scale orientation:image.imageOrientation];
++        CGImageRelease(outputCGImage);
++        return result ?: image;
++    } @catch (NSException *exception) {
++        return image;
++    }
++}
++
 +- (NSError *)errorWithDescription:(NSString *)description
 +{
 +    return [NSError errorWithDomain:CUSTOM_BACKGROUND_ERROR_DOMAIN code:1 userInfo:@{NSLocalizedDescriptionKey : description}];
@@ -786,10 +1097,10 @@ index 1b38976..7f06c48 100644
  
  @end
 diff --git a/Application/Dopamine/en.lproj/Localizable.strings b/Application/Dopamine/en.lproj/Localizable.strings
-index d3ca352..464fea8 100644
+index d3ca352..30b427b 100644
 --- a/Application/Dopamine/en.lproj/Localizable.strings
 +++ b/Application/Dopamine/en.lproj/Localizable.strings
-@@ -129,3 +129,16 @@
+@@ -129,3 +129,17 @@
  "Status_Title_Select_Package_Managers" = "Select Package Manager(s)";
  "Select_Package_Managers_Install_Message" = "If you are unsure which one to select, select Sileo";
  "Continue" = "Continue";
@@ -806,11 +1117,12 @@ index d3ca352..464fea8 100644
 +"Background_Reset_Default" = "Restore Default Background";
 +"Background_Error_Title" = "Unable to Set Background";
 +"Background_Error_No_Photo_Library" = "The photo library is not available on this device";
++"Background_Updated" = "Theme background updated";
 diff --git a/Application/Dopamine/zh-CN.lproj/Localizable.strings b/Application/Dopamine/zh-CN.lproj/Localizable.strings
-index 32f5bd8..fc1a2d9 100644
+index 32f5bd8..5ac069e 100644
 --- a/Application/Dopamine/zh-CN.lproj/Localizable.strings
 +++ b/Application/Dopamine/zh-CN.lproj/Localizable.strings
-@@ -124,3 +124,16 @@
+@@ -124,3 +124,17 @@
  "Status_Title_Select_Package_Managers" = "请选择包管理器";
  "Select_Package_Managers_Install_Message" = "如果你不确定选择哪一个比较好，请选择 Sileo";
  "Continue" = "继续";
@@ -827,11 +1139,12 @@ index 32f5bd8..fc1a2d9 100644
 +"Background_Reset_Default" = "恢复默认主题背景";
 +"Background_Error_Title" = "无法设置背景";
 +"Background_Error_No_Photo_Library" = "当前设备无法访问相册";
++"Background_Updated" = "主题背景已更新";
 diff --git a/Application/Dopamine/zh-Hans.lproj/Localizable.strings b/Application/Dopamine/zh-Hans.lproj/Localizable.strings
-index 32f5bd8..fc1a2d9 100644
+index 32f5bd8..5ac069e 100644
 --- a/Application/Dopamine/zh-Hans.lproj/Localizable.strings
 +++ b/Application/Dopamine/zh-Hans.lproj/Localizable.strings
-@@ -124,3 +124,16 @@
+@@ -124,3 +124,17 @@
  "Status_Title_Select_Package_Managers" = "请选择包管理器";
  "Select_Package_Managers_Install_Message" = "如果你不确定选择哪一个比较好，请选择 Sileo";
  "Continue" = "继续";
@@ -848,11 +1161,12 @@ index 32f5bd8..fc1a2d9 100644
 +"Background_Reset_Default" = "恢复默认主题背景";
 +"Background_Error_Title" = "无法设置背景";
 +"Background_Error_No_Photo_Library" = "当前设备无法访问相册";
++"Background_Updated" = "主题背景已更新";
 diff --git a/Application/Dopamine/zh-TW.lproj/Localizable.strings b/Application/Dopamine/zh-TW.lproj/Localizable.strings
-index 9943c2f..28f73be 100644
+index 9943c2f..113800f 100644
 --- a/Application/Dopamine/zh-TW.lproj/Localizable.strings
 +++ b/Application/Dopamine/zh-TW.lproj/Localizable.strings
-@@ -129,3 +129,16 @@
+@@ -129,3 +129,17 @@
  "Status_Title_Select_Package_Managers" = "選擇套件管理器";
  "Select_Package_Managers_Install_Message" = "如果不確定該選哪一個，請選擇 Sileo";
  "Continue" = "繼續";
@@ -869,3 +1183,4 @@ index 9943c2f..28f73be 100644
 +"Background_Reset_Default" = "恢復預設主題背景";
 +"Background_Error_Title" = "無法設定背景";
 +"Background_Error_No_Photo_Library" = "目前裝置無法存取相簿";
++"Background_Updated" = "主題背景已更新";

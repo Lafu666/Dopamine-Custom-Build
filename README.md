@@ -12,6 +12,10 @@
 
 三项改动：首页长按背景自定义/恢复主题背景、首页显示版本更新时间与系统运行时间、越狱时自动预装 ellekit / preferenceloader / altlist / libsandy / choicy / trollstorelite。
 
+## 状态
+
+已在 `macos-15`（Xcode 16.4）实测通过：产物 57MB，含 12 个 deb、`basebin.tar`、`Assets.car`，Mach-O arm64 带 `LC_CODE_SIGNATURE`。
+
 ## 出 IPA
 
 仓库 **Actions** → `Build Dopamine IPA` → **Run workflow**（`mode` 选 `app-only`）→ 等绿 → 页面底部 **Artifacts** → 下载 `Dopamine-custom-ipa`，解压得 `Dopamine.ipa`。
