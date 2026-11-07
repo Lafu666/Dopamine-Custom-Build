@@ -48,6 +48,11 @@ jobs:
         run: |
           set -euo pipefail
           make -C upstream/BaseBin .build .include
+          # _external/include 里的 libjailbreak 头文件可能不全，用源码补齐
+          mkdir -p upstream/BaseBin/.include/libjailbreak
+          cp upstream/BaseBin/libjailbreak/src/*.h upstream/BaseBin/.include/libjailbreak/
+          if [ -f upstream/BaseBin/XPF/src/xpf.h ]; then mkdir -p upstream/BaseBin/.include/xpf; cp upstream/BaseBin/XPF/src/xpf.h upstream/BaseBin/.include/xpf/; fi
+          ls upstream/BaseBin/.include/libjailbreak | head -20
           ls upstream/BaseBin/.include
 
       - name: 安装 ldid
