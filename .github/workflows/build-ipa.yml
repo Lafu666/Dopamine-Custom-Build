@@ -78,7 +78,9 @@ jobs:
           test -f "$APP/basebin.tar" || { echo "上游 IPA 缺少 basebin.tar，请改用 mode=full"; exit 1; }
           cp "$APP/basebin.tar" "$APP/basebin.tc" upstream/BaseBin/
           tar xf upstream/BaseBin/basebin.tar -C upstream/BaseBin/.build --strip-components=1
-          ls -lh upstream/BaseBin/.build/libjailbreak.dylib upstream/BaseBin/.build/*.dylib | head
+          cp upstream/BaseBin/.build/libjailbreak.dylib upstream/BaseBin/libjailbreak/libjailbreak.dylib
+          ls -lh upstream/BaseBin/libjailbreak/libjailbreak.dylib
+          ls upstream/BaseBin/.build/*.dylib | head
           mkdir -p upstream/Packages/libkrw-provider upstream/Packages/basebin-link upstream/Packages/libroot
           for d in "$APP"/*.deb; do
             n="$(basename "$d")"
