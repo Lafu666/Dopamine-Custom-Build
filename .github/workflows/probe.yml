@@ -2,11 +2,11 @@ name: Runner Probe
 on:
   workflow_dispatch:
 jobs:
-  linux:
-    runs-on: ubuntu-latest
+  mac13:
+    runs-on: macos-13
     steps:
-      - run: echo linux-ok
-  mac:
-    runs-on: macos-14
+      - run: sw_vers
+  maclatest:
+    runs-on: macos-latest
     steps:
-      - run: sw_vers && uname -m
+      - run: sw_vers
