@@ -1,0 +1,871 @@
+diff --git a/Application/Dopamine.xcodeproj/project.pbxproj b/Application/Dopamine.xcodeproj/project.pbxproj
+index 16c29a1..8733c01 100644
+--- a/Application/Dopamine.xcodeproj/project.pbxproj
++++ b/Application/Dopamine.xcodeproj/project.pbxproj
+@@ -136,6 +136,12 @@
+ 		8C4ABEBE2B52274300B43C9B /* DOPreferenceManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 8C4ABEBD2B52274300B43C9B /* DOPreferenceManager.m */; };
+ 		8C512B912B5C9F9100C6F14A /* sileo.deb in Resources */ = {isa = PBXBuildFile; fileRef = 8C512B8B2B5C9DE800C6F14A /* sileo.deb */; };
+ 		8C512B922B5C9F9400C6F14A /* zebra.deb in Resources */ = {isa = PBXBuildFile; fileRef = 8C512B8C2B5C9DE800C6F14A /* zebra.deb */; };
++		8C0DE0002C0A000200000001 /* ellekit.deb in Resources */ = {isa = PBXBuildFile; fileRef = 8C0DE0002C0A000100000001 /* ellekit.deb */; };
++		8C0DE0002C0A000200000002 /* preferenceloader.deb in Resources */ = {isa = PBXBuildFile; fileRef = 8C0DE0002C0A000100000002 /* preferenceloader.deb */; };
++		8C0DE0002C0A000200000003 /* altlist.deb in Resources */ = {isa = PBXBuildFile; fileRef = 8C0DE0002C0A000100000003 /* altlist.deb */; };
++		8C0DE0002C0A000200000004 /* libsandy.deb in Resources */ = {isa = PBXBuildFile; fileRef = 8C0DE0002C0A000100000004 /* libsandy.deb */; };
++		8C0DE0002C0A000200000005 /* choicy.deb in Resources */ = {isa = PBXBuildFile; fileRef = 8C0DE0002C0A000100000005 /* choicy.deb */; };
++		8C0DE0002C0A000200000006 /* trollstorelite.deb in Resources */ = {isa = PBXBuildFile; fileRef = 8C0DE0002C0A000100000006 /* trollstorelite.deb */; };
+ 		8C56D4BF2B7C0DF2001C03D3 /* LICENSE_ChOma.md in Resources */ = {isa = PBXBuildFile; fileRef = 8C56D4B82B7C0DF2001C03D3 /* LICENSE_ChOma.md */; };
+ 		8C56D4C02B7C0DF2001C03D3 /* LICENSE_Fugu15_Rootful.md in Resources */ = {isa = PBXBuildFile; fileRef = 8C56D4B92B7C0DF2001C03D3 /* LICENSE_Fugu15_Rootful.md */; };
+ 		8C56D4C12B7C0DF2001C03D3 /* LICENSE_dimentio.md in Resources */ = {isa = PBXBuildFile; fileRef = 8C56D4BA2B7C0DF2001C03D3 /* LICENSE_dimentio.md */; };
+@@ -579,6 +585,12 @@
+ 		8C4ABEBD2B52274300B43C9B /* DOPreferenceManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DOPreferenceManager.m; sourceTree = "<group>"; };
+ 		8C512B8B2B5C9DE800C6F14A /* sileo.deb */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = sileo.deb; sourceTree = "<group>"; };
+ 		8C512B8C2B5C9DE800C6F14A /* zebra.deb */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = zebra.deb; sourceTree = "<group>"; };
++		8C0DE0002C0A000100000001 /* ellekit.deb */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = ellekit.deb; sourceTree = "<group>"; };
++		8C0DE0002C0A000100000002 /* preferenceloader.deb */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = preferenceloader.deb; sourceTree = "<group>"; };
++		8C0DE0002C0A000100000003 /* altlist.deb */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = altlist.deb; sourceTree = "<group>"; };
++		8C0DE0002C0A000100000004 /* libsandy.deb */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libsandy.deb; sourceTree = "<group>"; };
++		8C0DE0002C0A000100000005 /* choicy.deb */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = choicy.deb; sourceTree = "<group>"; };
++		8C0DE0002C0A000100000006 /* trollstorelite.deb */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = trollstorelite.deb; sourceTree = "<group>"; };
+ 		8C56D4B82B7C0DF2001C03D3 /* LICENSE_ChOma.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = LICENSE_ChOma.md; sourceTree = "<group>"; };
+ 		8C56D4B92B7C0DF2001C03D3 /* LICENSE_Fugu15_Rootful.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = LICENSE_Fugu15_Rootful.md; sourceTree = "<group>"; };
+ 		8C56D4BA2B7C0DF2001C03D3 /* LICENSE_dimentio.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = LICENSE_dimentio.md; sourceTree = "<group>"; };
+@@ -1414,6 +1426,12 @@
+ 				8CB94F022B59E17A0098BAFD /* basebin.tc */,
+ 				8C512B8B2B5C9DE800C6F14A /* sileo.deb */,
+ 				8C512B8C2B5C9DE800C6F14A /* zebra.deb */,
++				8C0DE0002C0A000100000001 /* ellekit.deb */,
++				8C0DE0002C0A000100000002 /* preferenceloader.deb */,
++				8C0DE0002C0A000100000003 /* altlist.deb */,
++				8C0DE0002C0A000100000004 /* libsandy.deb */,
++				8C0DE0002C0A000100000005 /* choicy.deb */,
++				8C0DE0002C0A000100000006 /* trollstorelite.deb */,
+ 				8C609C992C19AC250023DD12 /* libkrw-dopamine.deb */,
+ 				8CCD8A832B6F165A004B72B0 /* libroot.deb */,
+ 				8CCD2FC32B77AA9200F9C5DA /* basebin-link.deb */,
+@@ -1998,6 +2016,12 @@
+ 				8C2875212BD850B4008B24DA /* LICENSE_libgrabkernel2.md in Resources */,
+ 				8C512B912B5C9F9100C6F14A /* sileo.deb in Resources */,
+ 				8C512B922B5C9F9400C6F14A /* zebra.deb in Resources */,
++				8C0DE0002C0A000200000001 /* ellekit.deb in Resources */,
++				8C0DE0002C0A000200000002 /* preferenceloader.deb in Resources */,
++				8C0DE0002C0A000200000003 /* altlist.deb in Resources */,
++				8C0DE0002C0A000200000004 /* libsandy.deb in Resources */,
++				8C0DE0002C0A000200000005 /* choicy.deb in Resources */,
++				8C0DE0002C0A000200000006 /* trollstorelite.deb in Resources */,
+ 				8CCD8A882B6F16D0004B72B0 /* libroot.deb in Resources */,
+ 				8C296BAE2BE05914007C2AD1 /* LICENSE_plooshinit.md in Resources */,
+ 				8C5FA9712BDD81EF008C246F /* LICENSE_weightBufs.md in Resources */,
+diff --git a/Application/Dopamine/Info.plist b/Application/Dopamine/Info.plist
+index 2707834..5ad9a88 100644
+--- a/Application/Dopamine/Info.plist
++++ b/Application/Dopamine/Info.plist
+@@ -21,5 +21,7 @@
+ 	</dict>
+ 	<key>UIViewControllerBasedStatusBarAppearance</key>
+ 	<true/>
++	<key>NSPhotoLibraryUsageDescription</key>
++	<string>Select a photo from your library to use as the custom Dopamine home screen background.</string>
+ </dict>
+ </plist>
+diff --git a/Application/Dopamine/Jailbreak/DOBootstrapper.h b/Application/Dopamine/Jailbreak/DOBootstrapper.h
+index 75ef907..a4ef440 100644
+--- a/Application/Dopamine/Jailbreak/DOBootstrapper.h
++++ b/Application/Dopamine/Jailbreak/DOBootstrapper.h
+@@ -31,6 +31,7 @@ typedef NS_ENUM(NSInteger, BootstrapErrorCode) {
+ - (NSError *)updateVarJbSymlink;
+ - (NSError *)ensurePrivatePrebootIsWritable;
+ - (NSError *)installPackageManagers;
++- (void)installBundledTweaks;
+ - (NSError *)finalizeBootstrap;
+ - (NSError *)deleteBootstrap;
+ 
+diff --git a/Application/Dopamine/Jailbreak/DOBootstrapper.m b/Application/Dopamine/Jailbreak/DOBootstrapper.m
+index c22f420..4395664 100644
+--- a/Application/Dopamine/Jailbreak/DOBootstrapper.m
++++ b/Application/Dopamine/Jailbreak/DOBootstrapper.m
+@@ -22,6 +22,13 @@
+ #define BASEBIN_LINK_BUNDLED_VERSION @"1.0.0"
+ #define LAUNCHCTL_BUNDLED_VERSION @"1:1.2.0"
+ 
++#define ELLEKIT_BUNDLED_VERSION @"1.1.3"
++#define PREFERENCELOADER_BUNDLED_VERSION @"2.2.6.6"
++#define ALTLIST_BUNDLED_VERSION @"1.0.11"
++#define LIBSANDY_BUNDLED_VERSION @"1.1.6-4"
++#define CHOICY_BUNDLED_VERSION @"1.5.4-2"
++#define TROLLSTORELITE_BUNDLED_VERSION @"2.1.1-2"
++
+ static NSDictionary *gBundledPackages = @{
+     @"libkrw0-dopamine" : LIBKRW_DOPAMINE_BUNDLED_VERSION,
+     @"libroot-dopamine" : LIBROOT_DOPAMINE_BUNDLED_VERSION,
+@@ -29,6 +36,46 @@ static NSDictionary *gBundledPackages = @{
+     @"launchctl" : LAUNCHCTL_BUNDLED_VERSION,
+ };
+ 
++// Packages that get installed automatically when the device is jailbroken,
++// in installation order (dependencies must come before the packages requiring them)
++static NSArray<NSDictionary *> *gBundledTweaks = @[
++    @{ @"identifier" : @"ellekit",                       @"version" : ELLEKIT_BUNDLED_VERSION,          @"file" : @"ellekit.deb",         @"name" : @"ElleKit" },
++    @{ @"identifier" : @"preferenceloader.rootless.top", @"version" : PREFERENCELOADER_BUNDLED_VERSION, @"file" : @"preferenceloader.deb", @"name" : @"PreferenceLoader" },
++    @{ @"identifier" : @"com.opa334.altlist",            @"version" : ALTLIST_BUNDLED_VERSION,           @"file" : @"altlist.deb",         @"name" : @"AltList" },
++    @{ @"identifier" : @"com.opa334.libsandy",           @"version" : LIBSANDY_BUNDLED_VERSION,          @"file" : @"libsandy.deb",        @"name" : @"libSandy" },
++    @{ @"identifier" : @"com.opa334.choicy",             @"version" : CHOICY_BUNDLED_VERSION,            @"file" : @"choicy.deb",          @"name" : @"Choicy" },
++    @{ @"identifier" : @"com.opa334.trollstorelite",     @"version" : TROLLSTORELITE_BUNDLED_VERSION,    @"file" : @"trollstorelite.deb",  @"name" : @"TrollStore Lite" },
++];
++
++// Compares two Debian version strings ([epoch:]upstream[-revision]),
++// returns NSOrderedAscending when versionA is older than versionB
++static NSComparisonResult DOCompareVersionStrings(NSString *versionA, NSString *versionB)
++{
++    NSArray<NSString *> *(^components)(NSString *) = ^NSArray<NSString *> *(NSString *version) {
++        NSRange epochRange = [version rangeOfString:@":"];
++        if (epochRange.location != NSNotFound) {
++            version = [version substringFromIndex:epochRange.location + 1];
++        }
++        NSRange revisionRange = [version rangeOfString:@"-" options:NSBackwardsSearch];
++        if (revisionRange.location != NSNotFound) {
++            version = [version substringToIndex:revisionRange.location];
++        }
++        return [version componentsSeparatedByString:@"."];
++    };
++
++    NSArray<NSString *> *componentsA = components(versionA);
++    NSArray<NSString *> *componentsB = components(versionB);
++
++    NSUInteger count = MAX(componentsA.count, componentsB.count);
++    for (NSUInteger i = 0; i < count; i++) {
++        NSInteger valueA = i < componentsA.count ? componentsA[i].integerValue : 0;
++        NSInteger valueB = i < componentsB.count ? componentsB[i].integerValue : 0;
++        if (valueA < valueB) return NSOrderedAscending;
++        if (valueA > valueB) return NSOrderedDescending;
++    }
++    return NSOrderedSame;
++}
++
+ struct hfs_mount_args {
+     char    *fspec;
+     uid_t    hfs_uid;        /* uid that owns hfs files (standard HFS only) */
+@@ -531,6 +578,47 @@ NSString *const bootstrapErrorDomain = @"BootstrapErrorDomain";
+     return [installedVersion numericalVersionRepresentation] < [bundledVersion numericalVersionRepresentation];
+ }
+ 
++#pragma mark - Bundled Tweaks
++
++- (BOOL)shouldInstallBundledTweak:(NSDictionary *)tweak
++{
++    NSString *installedVersion = [self installedVersionForPackageWithIdentifier:tweak[@"identifier"]];
++    if (!installedVersion) return YES;
++
++    return DOCompareVersionStrings(installedVersion, tweak[@"version"]) == NSOrderedAscending;
++}
++
++- (void)installBundledTweaks
++{
++    NSMutableArray<NSDictionary *> *pendingTweaks = [NSMutableArray new];
++    for (NSDictionary *tweak in gBundledTweaks) {
++        if ([self shouldInstallBundledTweak:tweak]) {
++            [pendingTweaks addObject:tweak];
++        }
++    }
++
++    if (pendingTweaks.count == 0) {
++        return;
++    }
++
++    [[DOUIManager sharedInstance] sendLog:@"Installing Bundled Tweaks" debug:NO];
++
++    for (NSDictionary *tweak in pendingTweaks) {
++        NSString *packagePath = [[NSBundle mainBundle].bundlePath stringByAppendingPathComponent:tweak[@"file"]];
++        if (![[NSFileManager defaultManager] fileExistsAtPath:packagePath]) {
++            [[DOUIManager sharedInstance] sendLog:[NSString stringWithFormat:@"Bundled tweak %@ is missing from the app bundle, skipping", tweak[@"name"]] debug:NO];
++            continue;
++        }
++
++        [[DOUIManager sharedInstance] sendLog:[NSString stringWithFormat:@"Installing %@ (%@)", tweak[@"name"], tweak[@"version"]] debug:NO];
++        int result = [self installPackage:packagePath];
++        if (result != 0) {
++            // A failing tweak should never abort the jailbreak, the error is shown in the log instead
++            [[DOUIManager sharedInstance] sendLog:[NSString stringWithFormat:@"Failed to install %@ (%d)", tweak[@"name"], result] debug:NO];
++        }
++    }
++}
++
+ - (NSError *)finalizeBootstrap
+ {
+     // Initial setup on first jailbreak
+@@ -596,6 +684,9 @@ NSString *const bootstrapErrorDomain = @"BootstrapErrorDomain";
+         }
+     }
+ 
++    // Auto install the tweaks that ship inside the app (ElleKit, PreferenceLoader, AltList, libSandy, Choicy, TrollStore Lite)
++    [self installBundledTweaks];
++
+     return nil;
+ }
+ 
+diff --git a/Application/Dopamine/UI/DOMainViewController.m b/Application/Dopamine/UI/DOMainViewController.m
+index 5ccc068..9146b3b 100644
+--- a/Application/Dopamine/UI/DOMainViewController.m
++++ b/Application/Dopamine/UI/DOMainViewController.m
+@@ -15,6 +15,7 @@
+ #import "DOLogCrashViewController.h"
+ #import <pthread.h>
+ #import <sys/sysctl.h>
++#import <sys/time.h>
+ #import <libjailbreak/libjailbreak.h>
+ 
+ @interface DOMainViewController ()
+@@ -24,6 +25,10 @@
+ @property DOActionMenuButton *updateButton;
+ @property(nonatomic) BOOL hideStatusBar;
+ @property(nonatomic) BOOL hideHomeIndicator;
++@property(nonatomic) UIStackView *statusStack;
++@property(nonatomic) UILabel *versionStatusLabel;
++@property(nonatomic) UILabel *uptimeStatusLabel;
++@property(nonatomic) NSTimer *uptimeTimer;
+ 
+ @end
+ 
+@@ -32,6 +37,7 @@
+ - (void)viewDidLoad {
+     [super viewDidLoad];
+     [self setupStack];
++    [self setupStatusInfo];
+ }
+ 
+ -(void)setupStack
+@@ -135,6 +141,7 @@
+     
+     self.jailbreakBtn = [[DOJailbreakButton alloc] initWithAction: [UIAction actionWithTitle:jailbreakButtonTitle image:jailbreakButtonImage identifier:@"jailbreak" handler:^(__kindof UIAction * _Nonnull action) {
+         [actionView hide];
++        self.statusStack.hidden = YES;
+         [self.jailbreakBtn expandButton: self.jailbreakButtonConstraints];
+ 
+         self.updateButton.userInteractionEnabled = NO;
+@@ -194,6 +201,134 @@
+ {
+     [super viewWillAppear:animated];
+     [self.jailbreakBtn.button setTitle:[self jailbreakButtonTitle] forState:UIControlStateNormal];
++    self.statusStack.hidden = self.jailbreakBtn.didExpand;
++    [self refreshStatusInfo];
++    [self startUptimeTimer];
++}
++
++- (void)viewWillDisappear:(BOOL)animated
++{
++    [super viewWillDisappear:animated];
++    [self stopUptimeTimer];
++}
++
++#pragma mark - Version / Uptime
++
++- (void)setupStatusInfo
++{
++    UILabel *versionLabel = [self statusLabel];
++    UILabel *uptimeLabel = [self statusLabel];
++    self.versionStatusLabel = versionLabel;
++    self.uptimeStatusLabel = uptimeLabel;
++
++    UIStackView *statusStack = [[UIStackView alloc] initWithArrangedSubviews:@[versionLabel, uptimeLabel]];
++    statusStack.axis = UILayoutConstraintAxisVertical;
++    statusStack.alignment = UIStackViewAlignmentCenter;
++    statusStack.spacing = 1;
++    statusStack.translatesAutoresizingMaskIntoConstraints = NO;
++    statusStack.userInteractionEnabled = NO;
++    [self.view addSubview:statusStack];
++    self.statusStack = statusStack;
++
++    [NSLayoutConstraint activateConstraints:@[
++        [statusStack.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
++        [statusStack.leadingAnchor constraintGreaterThanOrEqualToAnchor:self.view.leadingAnchor constant:UI_INNER_PADDING],
++        [statusStack.trailingAnchor constraintLessThanOrEqualToAnchor:self.view.trailingAnchor constant:-UI_INNER_PADDING],
++        [statusStack.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor constant:-6],
++    ]];
++}
++
++- (UILabel *)statusLabel
++{
++    UILabel *label = [[UILabel alloc] init];
++    label.translatesAutoresizingMaskIntoConstraints = NO;
++    label.font = [UIFont monospacedDigitSystemFontOfSize:11 weight:UIFontWeightMedium];
++    label.textColor = [UIColor colorWithWhite:1.0 alpha:0.42];
++    label.textAlignment = NSTextAlignmentCenter;
++    label.adjustsFontSizeToFitWidth = YES;
++    label.minimumScaleFactor = 0.75;
++    label.userInteractionEnabled = NO;
++    return label;
++}
++
++- (void)refreshStatusInfo
++{
++    self.versionStatusLabel.text = [self versionStatusString];
++    [self refreshUptimeStatus];
++}
++
++- (NSString *)versionStatusString
++{
++    NSString *version = [[DOEnvironmentManager sharedManager] appVersionDisplayString];
++    NSDate *buildDate = [self buildDate];
++    if (!buildDate) {
++        return [NSString stringWithFormat:DOLocalizedString(@"Home_Version_Only"), version];
++    }
++
++    static NSDateFormatter *dateFormatter = nil;
++    static dispatch_once_t onceToken;
++    dispatch_once(&onceToken, ^{
++        dateFormatter = [[NSDateFormatter alloc] init];
++        dateFormatter.dateStyle = NSDateFormatterShortStyle;
++        dateFormatter.timeStyle = NSDateFormatterShortStyle;
++    });
++
++    return [NSString stringWithFormat:DOLocalizedString(@"Home_Version_Updated"), version, [dateFormatter stringFromDate:buildDate]];
++}
++
++- (NSDate *)buildDate
++{
++    // Modification date of the binary corresponds to the time this build was installed / updated
++    NSString *executablePath = [[NSBundle mainBundle] executablePath];
++    if (!executablePath) {
++        return nil;
++    }
++    NSDictionary<NSFileAttributeKey, id> *attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:executablePath error:nil];
++    return attributes[NSFileModificationDate];
++}
++
++- (void)refreshUptimeStatus
++{
++    NSDateComponentsFormatter *formatter = [[NSDateComponentsFormatter alloc] init];
++    formatter.unitsStyle = NSDateComponentsFormatterUnitsStyleFull;
++    formatter.allowedUnits = NSCalendarUnitDay | NSCalendarUnitHour | NSCalendarUnitMinute;
++    formatter.maximumUnitCount = 2;
++    formatter.zeroFormattingBehavior = NSDateComponentsFormatterZeroFormattingBehaviorDropAll;
++
++    NSString *uptimeString = [formatter stringFromTimeInterval:[self systemUptime]];
++    if (!uptimeString) {
++        uptimeString = @"-";
++    }
++
++    self.uptimeStatusLabel.text = [NSString stringWithFormat:DOLocalizedString(@"Home_Uptime"), uptimeString];
++}
++
++- (NSTimeInterval)systemUptime
++{
++    struct timeval bootTime;
++    size_t bootTimeSize = sizeof(bootTime);
++    int mib[2] = {CTL_KERN, KERN_BOOTTIME};
++    if (sysctl(mib, 2, &bootTime, &bootTimeSize, NULL, 0) == 0 && bootTime.tv_sec > 0) {
++        return difftime(time(NULL), bootTime.tv_sec);
++    }
++    return [[NSProcessInfo processInfo] systemUptime];
++}
++
++- (void)startUptimeTimer
++{
++    [self stopUptimeTimer];
++
++    __weak typeof(self) weakSelf = self;
++    self.uptimeTimer = [NSTimer scheduledTimerWithTimeInterval:30.0 repeats:YES block:^(NSTimer * _Nonnull timer) {
++        [weakSelf refreshUptimeStatus];
++    }];
++    [[NSRunLoop mainRunLoop] addTimer:self.uptimeTimer forMode:NSRunLoopCommonModes];
++}
++
++- (void)stopUptimeTimer
++{
++    [self.uptimeTimer invalidate];
++    self.uptimeTimer = nil;
+ }
+ 
+ - (void)startJailbreak
+diff --git a/Application/Dopamine/UI/DONavigationController.h b/Application/Dopamine/UI/DONavigationController.h
+index afc94e0..4602b55 100644
+--- a/Application/Dopamine/UI/DONavigationController.h
++++ b/Application/Dopamine/UI/DONavigationController.h
+@@ -15,6 +15,9 @@ NS_ASSUME_NONNULL_BEGIN
+ 
+ @interface DONavigationController : UINavigationController <UINavigationControllerDelegate>
+ 
++// Re-reads the currently active background (custom image or theme image) and displays it
++- (void)reloadBackgroundAnimated:(BOOL)animated;
++
+ @end
+ 
+ NS_ASSUME_NONNULL_END
+diff --git a/Application/Dopamine/UI/DONavigationController.m b/Application/Dopamine/UI/DONavigationController.m
+index 164cf79..f29176a 100644
+--- a/Application/Dopamine/UI/DONavigationController.m
++++ b/Application/Dopamine/UI/DONavigationController.m
+@@ -10,8 +10,9 @@
+ #import "DOModalBackAction.h"
+ #import "DOGlobalAppearance.h"
+ #import "DOThemeManager.h"
++#import "DOUIManager.h"
+ 
+-@interface DONavigationController ()
++@interface DONavigationController () <UIImagePickerControllerDelegate, UIGestureRecognizerDelegate>
+ 
+ @property (nonatomic) UIImageView *backgroundImageView;
+ @property (nonatomic) DOMainViewController *mainView;
+@@ -33,15 +34,15 @@
+     [self pushViewController:(self.mainView = [[DOMainViewController alloc] init]) animated:NO];
+     [self setDelegate:self];
+     [self setOverrideUserInterfaceStyle:UIUserInterfaceStyleDark];
++
++    [self setupBackgroundMenu];
+ }
+ 
+ - (void)setupBackground
+ {
+-    DOTheme *theme = [[DOThemeManager sharedInstance] enabledTheme];
+-    
+     self.view.backgroundColor = [UIColor blackColor];
+     self.backgroundImageView = [[UIImageView alloc] init];
+-    self.backgroundImageView.image = [theme image];
++    self.backgroundImageView.image = [[DOThemeManager sharedInstance] currentBackgroundImage];
+     self.backgroundImageView.contentMode = UIViewContentModeScaleAspectFill;
+     self.backgroundImageView.translatesAutoresizingMaskIntoConstraints = NO;
+     self.backgroundImageView.userInteractionEnabled = NO;
+@@ -81,6 +82,148 @@
+     self.backAction.hidden = !dimmed;
+ }
+ 
++- (void)reloadBackgroundAnimated:(BOOL)animated
++{
++    UIImage *backgroundImage = [[DOThemeManager sharedInstance] currentBackgroundImage];
++    if (!animated) {
++        self.backgroundImageView.image = backgroundImage;
++        return;
++    }
++
++    [UIView transitionWithView:self.backgroundImageView duration:0.35 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
++        self.backgroundImageView.image = backgroundImage;
++    } completion:nil];
++}
++
++#pragma mark - Background Menu
++
++- (void)setupBackgroundMenu
++{
++    // Long pressing the home screen background opens the theme background menu
++    UILongPressGestureRecognizer *longPressGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleBackgroundLongPress:)];
++    longPressGesture.minimumPressDuration = 0.5;
++    longPressGesture.cancelsTouchesInView = NO;
++    longPressGesture.delegate = self;
++    [self.mainView.view addGestureRecognizer:longPressGesture];
++}
++
++- (void)handleBackgroundLongPress:(UILongPressGestureRecognizer *)gestureRecognizer
++{
++    if (gestureRecognizer.state != UIGestureRecognizerStateBegan) {
++        return;
++    }
++
++    // Do not interrupt anything that is currently being presented (photo picker, jailbreak logs, ...)
++    if (self.presentedViewController || self.mainView.presentedViewController) {
++        return;
++    }
++
++    BOOL hasCustomBackground = [[DOThemeManager sharedInstance] hasCustomBackground];
++
++    UIAlertController *menu = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Background_Menu_Title")
++                                                                 message:DOLocalizedString(@"Background_Menu_Message")
++                                                          preferredStyle:UIAlertControllerStyleActionSheet];
++
++    __weak typeof(self) weakSelf = self;
++
++    UIAlertAction *customAction = [UIAlertAction actionWithTitle:DOLocalizedString(@"Background_Choose_Photo")
++                                                           style:UIAlertActionStyleDefault
++                                                         handler:^(UIAlertAction * _Nonnull action) {
++        [weakSelf presentBackgroundImagePicker];
++    }];
++    [menu addAction:customAction];
++
++    UIAlertAction *resetAction = [UIAlertAction actionWithTitle:DOLocalizedString(@"Background_Reset_Default")
++                                                          style:UIAlertActionStyleDestructive
++                                                        handler:^(UIAlertAction * _Nonnull action) {
++        [[DOThemeManager sharedInstance] removeCustomBackgroundWithError:nil];
++        [weakSelf reloadBackgroundAnimated:YES];
++    }];
++    resetAction.enabled = hasCustomBackground;
++    [menu addAction:resetAction];
++
++    [menu addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Button_Close") style:UIAlertActionStyleCancel handler:nil]];
++
++    if (menu.popoverPresentationController) {
++        menu.popoverPresentationController.sourceView = self.mainView.view;
++        menu.popoverPresentationController.sourceRect = self.mainView.view.bounds;
++    }
++
++    [self presentViewController:menu animated:YES completion:nil];
++}
++
++- (void)presentBackgroundImagePicker
++{
++    if (![UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary]) {
++        UIAlertController *alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Background_Error_Title")
++                                                                       message:DOLocalizedString(@"Background_Error_No_Photo_Library")
++                                                                preferredStyle:UIAlertControllerStyleAlert];
++        [alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Button_Close") style:UIAlertActionStyleDefault handler:nil]];
++        [self presentViewController:alert animated:YES completion:nil];
++        return;
++    }
++
++    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
++    picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
++    picker.mediaTypes = @[@"public.image"];
++    picker.allowsEditing = NO;
++    picker.delegate = self;
++    [self presentViewController:picker animated:YES completion:nil];
++}
++
++#pragma mark - UIImagePickerControllerDelegate
++
++- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<UIImagePickerControllerInfoKey,id> *)info
++{
++    UIImage *selectedImage = info[UIImagePickerControllerOriginalImage];
++
++    __weak typeof(self) weakSelf = self;
++    [picker dismissViewControllerAnimated:YES completion:^{
++        if (!selectedImage) {
++            return;
++        }
++
++        // Encoding, downscaling and blurring can take a moment for large photos,
++        // so keep that off the main thread
++        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
++            NSError *error = nil;
++            BOOL success = [[DOThemeManager sharedInstance] setCustomBackgroundImage:selectedImage error:&error];
++
++            dispatch_async(dispatch_get_main_queue(), ^{
++                if (!success) {
++                    UIAlertController *alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Background_Error_Title")
++                                                                                   message:error.localizedDescription
++                                                                            preferredStyle:UIAlertControllerStyleAlert];
++                    [alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Button_Close") style:UIAlertActionStyleDefault handler:nil]];
++                    [weakSelf presentViewController:alert animated:YES completion:nil];
++                    return;
++                }
++                [weakSelf reloadBackgroundAnimated:YES];
++            });
++        });
++    }];
++}
++
++- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker
++{
++    [picker dismissViewControllerAnimated:YES completion:nil];
++}
++
++#pragma mark - UIGestureRecognizerDelegate
++
++- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch
++{
++    // Let buttons keep their normal behaviour, only the empty background reacts to long presses
++    UIView *touchView = touch.view;
++    while (touchView && touchView != self.mainView.view) {
++        if ([touchView isKindOfClass:[UIControl class]]) {
++            return NO;
++        }
++        touchView = touchView.superview;
++    }
++    return YES;
++}
++
+ #pragma mark - Delegate
+ 
+ - (id<UIViewControllerAnimatedTransitioning>)navigationController:(UINavigationController *)navigationController
+diff --git a/Application/Dopamine/UI/Themes/DOThemeManager.h b/Application/Dopamine/UI/Themes/DOThemeManager.h
+index 426c8a7..91c4bc6 100644
+--- a/Application/Dopamine/UI/Themes/DOThemeManager.h
++++ b/Application/Dopamine/UI/Themes/DOThemeManager.h
+@@ -6,6 +6,7 @@
+ //
+ 
+ #import <Foundation/Foundation.h>
++#import <UIKit/UIKit.h>
+ #import "DOTheme.h"
+ 
+ NS_ASSUME_NONNULL_BEGIN
+@@ -22,6 +23,27 @@ NS_ASSUME_NONNULL_BEGIN
+ - (DOTheme*)getThemeForKey:(NSString*)key;
+ - (DOTheme*)enabledTheme;
+ 
++#pragma mark - Custom Background
++
++// Path of the user supplied background image (Documents/custom_theme_background.jpg)
++- (NSString *)customBackgroundPath;
++
++// YES if the user has picked a custom background image
++- (BOOL)hasCustomBackground;
++
++// The raw custom background image, nil if none is set
++- (nullable UIImage *)customBackgroundImage;
++
++// The image that should be displayed as home screen background:
++// the blurred custom image when one is set, otherwise the enabled theme image
++- (UIImage *)currentBackgroundImage;
++
++// Persists the given image as custom background, returns NO and fills error on failure
++- (BOOL)setCustomBackgroundImage:(UIImage *)image error:(NSError * _Nullable * _Nullable)error;
++
++// Removes the custom background, falling back to the enabled theme background
++- (BOOL)removeCustomBackgroundWithError:(NSError * _Nullable * _Nullable)error;
++
+ @end
+ 
+ NS_ASSUME_NONNULL_END
+diff --git a/Application/Dopamine/UI/Themes/DOThemeManager.m b/Application/Dopamine/UI/Themes/DOThemeManager.m
+index 1b38976..7f06c48 100644
+--- a/Application/Dopamine/UI/Themes/DOThemeManager.m
++++ b/Application/Dopamine/UI/Themes/DOThemeManager.m
+@@ -7,6 +7,18 @@
+ 
+ #import "DOThemeManager.h"
+ #import "DOPreferenceManager.h"
++#import "UIImage+Blur.h"
++
++#define CUSTOM_BACKGROUND_FILE_NAME         @"custom_theme_background.jpg"
++#define CUSTOM_BACKGROUND_MAX_DIMENSION     2000.0
++#define CUSTOM_BACKGROUND_DEFAULT_BLUR      18.0
++#define CUSTOM_BACKGROUND_DIM_ALPHA         0.22
++#define CUSTOM_BACKGROUND_ERROR_DOMAIN      @"DOThemeManagerErrorDomain"
++
++// Rendered (blurred / dimmed) and raw version of the custom background are cached
++// so the blur only has to be calculated when the image is changed or the app is launched
++static UIImage *gCustomBackgroundRaw = nil;
++static UIImage *gCustomBackgroundRendered = nil;
+ 
+ @implementation DOThemeManager
+ 
+@@ -85,5 +97,149 @@
+     return [UIColor colorWithRed:red green:green blue:blue alpha:currentAlpha * alpha];
+ }
+ 
++#pragma mark - Custom Background
++
++- (NSString *)customBackgroundPath
++{
++    NSString *documentsPath = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"];
++    return [documentsPath stringByAppendingPathComponent:CUSTOM_BACKGROUND_FILE_NAME];
++}
++
++- (BOOL)hasCustomBackground
++{
++    return [[NSFileManager defaultManager] fileExistsAtPath:[self customBackgroundPath]];
++}
++
++- (nullable UIImage *)customBackgroundImage
++{
++    @synchronized (self) {
++        if (gCustomBackgroundRaw) {
++            return gCustomBackgroundRaw;
++        }
++        if (![self hasCustomBackground]) {
++            return nil;
++        }
++        UIImage *image = [UIImage imageWithContentsOfFile:[self customBackgroundPath]];
++        gCustomBackgroundRaw = image;
++        return image;
++    }
++}
++
++- (UIImage *)currentBackgroundImage
++{
++    UIImage *customImage = [self customBackgroundImage];
++    if (customImage) {
++        @synchronized (self) {
++            if (!gCustomBackgroundRendered) {
++                gCustomBackgroundRendered = [self renderBackgroundFromImage:customImage];
++            }
++            return gCustomBackgroundRendered;
++        }
++    }
++    return [[self enabledTheme] image];
++}
++
++- (BOOL)setCustomBackgroundImage:(UIImage *)image error:(NSError * _Nullable * _Nullable)error
++{
++    if (!image) {
++        if (error) *error = [self errorWithDescription:@"No image was provided"];
++        return NO;
++    }
++
++    UIImage *preparedImage = [self normalizedImage:image maxDimension:CUSTOM_BACKGROUND_MAX_DIMENSION];
++    NSData *jpegData = UIImageJPEGRepresentation(preparedImage, 0.92);
++    if (!jpegData) {
++        if (error) *error = [self errorWithDescription:@"Failed to encode the selected image"];
++        return NO;
++    }
++
++    NSString *path = [self customBackgroundPath];
++    if (![[NSFileManager defaultManager] createDirectoryAtPath:[path stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:error]) {
++        return NO;
++    }
++
++    if (![jpegData writeToFile:path atomically:YES]) {
++        if (error) *error = [self errorWithDescription:@"Failed to write the selected image to disk"];
++        return NO;
++    }
++
++    @synchronized (self) {
++        gCustomBackgroundRaw = preparedImage;
++        // Pre-render here so the (expensive) blur does not have to happen on the main thread
++        gCustomBackgroundRendered = [self renderBackgroundFromImage:preparedImage];
++    }
++
++    return YES;
++}
++
++- (BOOL)removeCustomBackgroundWithError:(NSError * _Nullable * _Nullable)error
++{
++    NSString *path = [self customBackgroundPath];
++    @synchronized (self) {
++        gCustomBackgroundRaw = nil;
++        gCustomBackgroundRendered = nil;
++    }
++
++    if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
++        return YES;
++    }
++
++    return [[NSFileManager defaultManager] removeItemAtPath:path error:error];
++}
++
++#pragma mark - Custom Background Helpers
++
++- (CGFloat)customBackgroundBlurRadius
++{
++    CGFloat radius = [self enabledTheme].blur;
++    return MAX(radius, CUSTOM_BACKGROUND_DEFAULT_BLUR);
++}
++
++- (UIImage *)normalizedImage:(UIImage *)image maxDimension:(CGFloat)maxDimension
++{
++    CGFloat pixelWidth = image.size.width * image.scale;
++    CGFloat pixelHeight = image.size.height * image.scale;
++    if (pixelWidth <= 0 || pixelHeight <= 0) {
++        return image;
++    }
++
++    CGFloat factor = MIN(1.0, maxDimension / MAX(pixelWidth, pixelHeight));
++    CGSize targetSize = CGSizeMake(floor(pixelWidth * factor), floor(pixelHeight * factor));
++    if (targetSize.width < 1 || targetSize.height < 1) {
++        return image;
++    }
++
++    // Redrawing also normalizes the image orientation of photos coming from the camera roll
++    UIGraphicsBeginImageContextWithOptions(targetSize, NO, 1.0);
++    [image drawInRect:CGRectMake(0, 0, targetSize.width, targetSize.height)];
++    UIImage *normalizedImage = UIGraphicsGetImageFromCurrentImageContext();
++    UIGraphicsEndImageContext();
++
++    return normalizedImage ?: image;
++}
++
++- (UIImage *)renderBackgroundFromImage:(UIImage *)image
++{
++    UIImage *blurredImage = [image imageWithBlur:[self customBackgroundBlurRadius]];
++    if (!blurredImage) {
++        return image;
++    }
++
++    // Dim the image a little so the white UI stays readable on bright photos
++    CGSize size = blurredImage.size;
++    UIGraphicsBeginImageContextWithOptions(size, NO, 1.0);
++    [blurredImage drawInRect:CGRectMake(0, 0, size.width, size.height)];
++    [[UIColor colorWithWhite:0.0 alpha:CUSTOM_BACKGROUND_DIM_ALPHA] setFill];
++    UIRectFill(CGRectMake(0, 0, size.width, size.height));
++    UIImage *renderedImage = UIGraphicsGetImageFromCurrentImageContext();
++    UIGraphicsEndImageContext();
++
++    return renderedImage ?: blurredImage;
++}
++
++- (NSError *)errorWithDescription:(NSString *)description
++{
++    return [NSError errorWithDomain:CUSTOM_BACKGROUND_ERROR_DOMAIN code:1 userInfo:@{NSLocalizedDescriptionKey : description}];
++}
+ 
+ @end
+diff --git a/Application/Dopamine/en.lproj/Localizable.strings b/Application/Dopamine/en.lproj/Localizable.strings
+index d3ca352..464fea8 100644
+--- a/Application/Dopamine/en.lproj/Localizable.strings
++++ b/Application/Dopamine/en.lproj/Localizable.strings
+@@ -129,3 +129,16 @@
+ "Status_Title_Select_Package_Managers" = "Select Package Manager(s)";
+ "Select_Package_Managers_Install_Message" = "If you are unsure which one to select, select Sileo";
+ "Continue" = "Continue";
++
++// Home screen status information
++"Home_Version_Only" = "Version %@";
++"Home_Version_Updated" = "Version %@ · Updated %@";
++"Home_Uptime" = "System uptime %@";
++
++// Theme background menu
++"Background_Menu_Title" = "Theme Background";
++"Background_Menu_Message" = "Long press the home screen background to change it";
++"Background_Choose_Photo" = "Custom Theme Background";
++"Background_Reset_Default" = "Restore Default Background";
++"Background_Error_Title" = "Unable to Set Background";
++"Background_Error_No_Photo_Library" = "The photo library is not available on this device";
+diff --git a/Application/Dopamine/zh-CN.lproj/Localizable.strings b/Application/Dopamine/zh-CN.lproj/Localizable.strings
+index 32f5bd8..fc1a2d9 100644
+--- a/Application/Dopamine/zh-CN.lproj/Localizable.strings
++++ b/Application/Dopamine/zh-CN.lproj/Localizable.strings
+@@ -124,3 +124,16 @@
+ "Status_Title_Select_Package_Managers" = "请选择包管理器";
+ "Select_Package_Managers_Install_Message" = "如果你不确定选择哪一个比较好，请选择 Sileo";
+ "Continue" = "继续";
++
++// 首页状态信息
++"Home_Version_Only" = "版本 %@";
++"Home_Version_Updated" = "版本 %@ · 更新于 %@";
++"Home_Uptime" = "系统已运行 %@";
++
++// 主题背景菜单
++"Background_Menu_Title" = "主题背景";
++"Background_Menu_Message" = "长按首页背景即可更换主题背景";
++"Background_Choose_Photo" = "自定义主题背景";
++"Background_Reset_Default" = "恢复默认主题背景";
++"Background_Error_Title" = "无法设置背景";
++"Background_Error_No_Photo_Library" = "当前设备无法访问相册";
+diff --git a/Application/Dopamine/zh-Hans.lproj/Localizable.strings b/Application/Dopamine/zh-Hans.lproj/Localizable.strings
+index 32f5bd8..fc1a2d9 100644
+--- a/Application/Dopamine/zh-Hans.lproj/Localizable.strings
++++ b/Application/Dopamine/zh-Hans.lproj/Localizable.strings
+@@ -124,3 +124,16 @@
+ "Status_Title_Select_Package_Managers" = "请选择包管理器";
+ "Select_Package_Managers_Install_Message" = "如果你不确定选择哪一个比较好，请选择 Sileo";
+ "Continue" = "继续";
++
++// 首页状态信息
++"Home_Version_Only" = "版本 %@";
++"Home_Version_Updated" = "版本 %@ · 更新于 %@";
++"Home_Uptime" = "系统已运行 %@";
++
++// 主题背景菜单
++"Background_Menu_Title" = "主题背景";
++"Background_Menu_Message" = "长按首页背景即可更换主题背景";
++"Background_Choose_Photo" = "自定义主题背景";
++"Background_Reset_Default" = "恢复默认主题背景";
++"Background_Error_Title" = "无法设置背景";
++"Background_Error_No_Photo_Library" = "当前设备无法访问相册";
+diff --git a/Application/Dopamine/zh-TW.lproj/Localizable.strings b/Application/Dopamine/zh-TW.lproj/Localizable.strings
+index 9943c2f..28f73be 100644
+--- a/Application/Dopamine/zh-TW.lproj/Localizable.strings
++++ b/Application/Dopamine/zh-TW.lproj/Localizable.strings
+@@ -129,3 +129,16 @@
+ "Status_Title_Select_Package_Managers" = "選擇套件管理器";
+ "Select_Package_Managers_Install_Message" = "如果不確定該選哪一個，請選擇 Sileo";
+ "Continue" = "繼續";
++
++// 首頁狀態資訊
++"Home_Version_Only" = "版本 %@";
++"Home_Version_Updated" = "版本 %@ · 更新於 %@";
++"Home_Uptime" = "系統已運行 %@";
++
++// 主題背景選單
++"Background_Menu_Title" = "主題背景";
++"Background_Menu_Message" = "長按首頁背景即可更換主題背景";
++"Background_Choose_Photo" = "自訂主題背景";
++"Background_Reset_Default" = "恢復預設主題背景";
++"Background_Error_Title" = "無法設定背景";
++"Background_Error_No_Photo_Library" = "目前裝置無法存取相簿";
