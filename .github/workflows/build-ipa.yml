@@ -92,6 +92,19 @@ jobs:
           done
           ls -lh upstream/BaseBin/basebin.tar upstream/Packages/*/*.deb
 
+      - name: 准备 bootstrap 包
+        run: |
+          set -euo pipefail
+          RES=upstream/Application/Dopamine/Resources
+          if [ -d up/Payload/Dopamine.app ]; then
+            cp up/Payload/Dopamine.app/bootstrap_*.tar.zst "$RES"/ 2>/dev/null || true
+          fi
+          if ! ls "$RES"/bootstrap_*.tar.zst >/dev/null 2>&1; then
+            echo "从 apt.procurs.us 下载 bootstrap"
+            ( cd "$RES" && bash download_bootstraps.sh )
+          fi
+          ls -lh "$RES"/bootstrap_*.tar.zst
+
       - name: 编译 BaseBin + Packages（full）
         if: inputs.mode == 'full'
         run: |
