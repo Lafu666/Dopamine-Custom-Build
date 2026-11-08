@@ -470,10 +470,10 @@ index afc94e0..4602b55 100644
  
  NS_ASSUME_NONNULL_END
 diff --git a/Application/Dopamine/UI/DONavigationController.m b/Application/Dopamine/UI/DONavigationController.m
-index 164cf79..f681021 100644
+index 164cf79..809235e 100644
 --- a/Application/Dopamine/UI/DONavigationController.m
 +++ b/Application/Dopamine/UI/DONavigationController.m
-@@ -10,12 +10,14 @@
+@@ -10,8 +10,14 @@
  #import "DOModalBackAction.h"
  #import "DOGlobalAppearance.h"
  #import "DOThemeManager.h"
@@ -481,15 +481,25 @@ index 164cf79..f681021 100644
  
 -@interface DONavigationController ()
 +@interface DONavigationController () <UIImagePickerControllerDelegate, UIGestureRecognizerDelegate>
++{
++    // Stored by hand: a custom setter writing through the property itself caused
++    // infinite recursion and crashed the app on launch
++    BOOL _isBackgroundDimmed;
++}
  
  @property (nonatomic) UIImageView *backgroundImageView;
  @property (nonatomic) DOMainViewController *mainView;
- @property (nonatomic) DOModalBackAction *backAction;
-+@property (nonatomic) BOOL backgroundDimmed;
+@@ -27,21 +33,25 @@
  
- @end
- 
-@@ -33,15 +35,15 @@
+ - (void)viewDidLoad
+ {
++    // Cache the screen metrics while we are on the main thread, the background
++    // image is prepared (and blurred) on a background queue later on
++    [[DOThemeManager sharedInstance] prepareScreenMetrics];
++
+     [self setupBackground];
+     [super viewDidLoad];
+     [self setNavigationBarHidden:YES];
      [self pushViewController:(self.mainView = [[DOMainViewController alloc] init]) animated:NO];
      [self setDelegate:self];
      [self setOverrideUserInterfaceStyle:UIUserInterfaceStyleDark];
@@ -508,15 +518,17 @@ index 164cf79..f681021 100644
      self.backgroundImageView.contentMode = UIViewContentModeScaleAspectFill;
      self.backgroundImageView.translatesAutoresizingMaskIntoConstraints = NO;
      self.backgroundImageView.userInteractionEnabled = NO;
-@@ -74,6 +76,7 @@
+@@ -74,6 +84,9 @@
  
  - (void)setBackgroundDimmed:(BOOL)dimmed
  {
-+    self.backgroundDimmed = dimmed;
++    // NOTE: never assign through the property here, that would call this very
++    // setter again and recurse until the stack overflows (crash on launch)
++    _isBackgroundDimmed = dimmed;
      [UIView animateWithDuration:0.3 animations:^{
          self.backgroundImageView.alpha = dimmed ? 0.4 : 1;
      }];
-@@ -81,6 +84,229 @@
+@@ -81,6 +94,229 @@
      self.backAction.hidden = !dimmed;
  }
  
@@ -527,7 +539,7 @@ index 164cf79..f681021 100644
 +        backgroundImage = [[[DOThemeManager sharedInstance] enabledTheme] image];
 +    }
 +
-+    CGFloat targetAlpha = self.backgroundDimmed ? 0.4 : 1.0;
++    CGFloat targetAlpha = _isBackgroundDimmed ? 0.4 : 1.0;
 +    BOOL imageChanged = (self.backgroundImageView.image != backgroundImage);
 +
 +    // Assign the image directly. UIView transitionWithView: does not animate
@@ -746,7 +758,7 @@ index 164cf79..f681021 100644
  #pragma mark - Delegate
  
  - (id<UIViewControllerAnimatedTransitioning>)navigationController:(UINavigationController *)navigationController
-@@ -96,7 +322,15 @@
+@@ -96,7 +332,15 @@
  
  - (void)navigationController:(UINavigationController *)navigationController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated
  {
@@ -790,7 +802,7 @@ index b0ece9d..7f47d3f 100644
  
  - (id)readPreferenceValue:(PSSpecifier*)specifier
 diff --git a/Application/Dopamine/UI/Themes/DOThemeManager.h b/Application/Dopamine/UI/Themes/DOThemeManager.h
-index 426c8a7..91c4bc6 100644
+index 426c8a7..a874e4b 100644
 --- a/Application/Dopamine/UI/Themes/DOThemeManager.h
 +++ b/Application/Dopamine/UI/Themes/DOThemeManager.h
 @@ -6,6 +6,7 @@
@@ -801,11 +813,15 @@ index 426c8a7..91c4bc6 100644
  #import "DOTheme.h"
  
  NS_ASSUME_NONNULL_BEGIN
-@@ -22,6 +23,27 @@ NS_ASSUME_NONNULL_BEGIN
+@@ -22,6 +23,31 @@ NS_ASSUME_NONNULL_BEGIN
  - (DOTheme*)getThemeForKey:(NSString*)key;
  - (DOTheme*)enabledTheme;
  
 +#pragma mark - Custom Background
++
++// Must be called from the main thread before any background image is prepared.
++// Caches the render size so the (background thread) blur never queries UIScreen.
++- (void)prepareScreenMetrics;
 +
 +// Path of the user supplied background image (Documents/custom_theme_background.jpg)
 +- (NSString *)customBackgroundPath;
@@ -830,10 +846,10 @@ index 426c8a7..91c4bc6 100644
  
  NS_ASSUME_NONNULL_END
 diff --git a/Application/Dopamine/UI/Themes/DOThemeManager.m b/Application/Dopamine/UI/Themes/DOThemeManager.m
-index 1b38976..2210997 100644
+index 1b38976..61e8c73 100644
 --- a/Application/Dopamine/UI/Themes/DOThemeManager.m
 +++ b/Application/Dopamine/UI/Themes/DOThemeManager.m
-@@ -7,6 +7,20 @@
+@@ -7,6 +7,24 @@
  
  #import "DOThemeManager.h"
  #import "DOPreferenceManager.h"
@@ -851,14 +867,31 @@ index 1b38976..2210997 100644
 +// so the blur only has to be calculated when the image is changed or the app is launched
 +static UIImage *gCustomBackgroundRaw = nil;
 +static UIImage *gCustomBackgroundRendered = nil;
++
++// [UIScreen mainScreen] must not be touched from a background thread, but the
++// background image is prepared on one. Cache the value once on the main thread.
++static CGFloat gRenderMaxDimension = 0;
  
  @implementation DOThemeManager
  
-@@ -85,5 +99,241 @@
+@@ -85,5 +103,258 @@
      return [UIColor colorWithRed:red green:green blue:blue alpha:currentAlpha * alpha];
  }
  
 +#pragma mark - Custom Background
++
++// Call this once from the main thread. It stores the size the background is
++// rendered at, so background work never has to query UIScreen off the main thread.
++- (void)prepareScreenMetrics
++{
++    CGFloat screenScale = [UIScreen mainScreen].scale;
++    if (screenScale <= 0) {
++        screenScale = 2.0;
++    }
++    CGSize screenSize = [UIScreen mainScreen].bounds.size;
++    CGFloat maxDimension = MAX(screenSize.width, screenSize.height) * screenScale * 1.2;
++    gRenderMaxDimension = MAX(maxDimension, 1024.0);
++}
 +
 +- (NSString *)customBackgroundPath
 +{
@@ -1016,9 +1049,13 @@ index 1b38976..2210997 100644
 +
 +    // The background is blurred anyway, so work on a screen sized copy. Blurring a
 +    // 2000x2000 image costs a lot of time and memory for no visual benefit.
-+    CGFloat screenScale = [UIScreen mainScreen].scale > 0 ? [UIScreen mainScreen].scale : 2.0;
-+    CGSize screenSize = [UIScreen mainScreen].bounds.size;
-+    CGFloat renderMaxDimension = MAX(screenSize.width, screenSize.height) * screenScale * 1.2;
++    CGFloat renderMaxDimension = gRenderMaxDimension;
++    if (renderMaxDimension <= 0) {
++        // Fallback for the (unexpected) case where prepareScreenMetrics was not called
++        CGFloat screenScale = [UIScreen mainScreen].scale > 0 ? [UIScreen mainScreen].scale : 2.0;
++        CGSize screenSize = [UIScreen mainScreen].bounds.size;
++        renderMaxDimension = MAX(MAX(screenSize.width, screenSize.height) * screenScale * 1.2, 1024.0);
++    }
 +    UIImage *workingImage = [self normalizedImage:image maxDimension:renderMaxDimension];
 +
 +    UIImage *blurredImage = [self blurredImage:workingImage radius:[self customBackgroundBlurRadius]];
