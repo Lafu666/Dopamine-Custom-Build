@@ -201,8 +201,71 @@ index c22f420..4395664 100644
      return nil;
  }
  
+diff --git a/Application/Dopamine/UI/DOHeaderView.h b/Application/Dopamine/UI/DOHeaderView.h
+index 0673f35..7942b13 100644
+--- a/Application/Dopamine/UI/DOHeaderView.h
++++ b/Application/Dopamine/UI/DOHeaderView.h
+@@ -13,6 +13,10 @@ NS_ASSUME_NONNULL_BEGIN
+ 
+ -(id)initWithImage:(UIImage *)image subtitles:(NSArray<NSAttributedString *> *)subtitles;
+ 
++// Replaces the text of a subtitle line while keeping its original font / color,
++// used to keep the system uptime line up to date
++- (void)updateSubtitleAtIndex:(NSUInteger)index withString:(NSString *)string;
++
+ @end
+ 
+ NS_ASSUME_NONNULL_END
+diff --git a/Application/Dopamine/UI/DOHeaderView.m b/Application/Dopamine/UI/DOHeaderView.m
+index d1f3184..34d34b6 100644
+--- a/Application/Dopamine/UI/DOHeaderView.m
++++ b/Application/Dopamine/UI/DOHeaderView.m
+@@ -11,6 +11,7 @@
+ @interface DOHeaderView ()
+ 
+ @property (nonatomic) UIImageView *logoView;
++@property (nonatomic) NSMutableArray<UILabel *> *subtitleLabels;
+ 
+ @end
+ 
+@@ -45,11 +46,13 @@
+         ]];
+ 
+         //3 - Add our subtitles to our stack
++        self.subtitleLabels = [NSMutableArray array];
+         [subtitles enumerateObjectsUsingBlock:^(NSAttributedString *formatedText, NSUInteger idx, BOOL *stop) {
+             UILabel *label = [[UILabel alloc] init];
+             label.attributedText = formatedText;
+             label.translatesAutoresizingMaskIntoConstraints = NO;
+             [stackView addArrangedSubview:label];
++            [self.subtitleLabels addObject:label];
+         }];
+ 
+         self.translatesAutoresizingMaskIntoConstraints = NO;
+@@ -67,4 +70,21 @@
+     return self;
+ }
+ 
++- (void)updateSubtitleAtIndex:(NSUInteger)index withString:(NSString *)string
++{
++    // Guard the index: this is called from a repeating timer
++    if (index >= self.subtitleLabels.count || !string) {
++        return;
++    }
++
++    UILabel *label = self.subtitleLabels[index];
++    NSAttributedString *template = label.attributedText;
++    if (!template) {
++        label.text = string;
++        return;
++    }
++
++    label.attributedText = [[NSAttributedString alloc] initWithString:string attributes:[template attributesAtIndex:0 effectiveRange:NULL]];
++}
++
+ @end
 diff --git a/Application/Dopamine/UI/DOMainViewController.m b/Application/Dopamine/UI/DOMainViewController.m
-index 5ccc068..f3fe889 100644
+index 5ccc068..44fd514 100644
 --- a/Application/Dopamine/UI/DOMainViewController.m
 +++ b/Application/Dopamine/UI/DOMainViewController.m
 @@ -15,6 +15,7 @@
@@ -213,27 +276,35 @@ index 5ccc068..f3fe889 100644
  #import <libjailbreak/libjailbreak.h>
  
  @interface DOMainViewController ()
-@@ -24,6 +25,11 @@
+@@ -24,6 +25,14 @@
  @property DOActionMenuButton *updateButton;
  @property(nonatomic) BOOL hideStatusBar;
  @property(nonatomic) BOOL hideHomeIndicator;
-+@property(nonatomic) UIStackView *statusStack;
-+@property(nonatomic) UILabel *versionStatusLabel;
-+@property(nonatomic) UILabel *uptimeStatusLabel;
++@property(nonatomic) DOHeaderView *headerView;
 +@property(nonatomic) NSTimer *uptimeTimer;
 +@property(nonatomic) BOOL didFade;
++
++- (NSString *)systemVersionStatusString;
++- (NSString *)versionStatusString;
++- (NSString *)uptimeStatusString;
++- (void)refreshUptimeStatus;
  
  @end
  
-@@ -32,6 +38,7 @@
- - (void)viewDidLoad {
-     [super viewDidLoad];
-     [self setupStack];
-+    [self setupStatusInfo];
- }
+@@ -77,7 +86,12 @@
+     DOHeaderView *headerView = [[DOHeaderView alloc] initWithImage: [UIImage imageNamed:@"Dopamine"] subtitles: @[
+         [DOGlobalAppearance mainSubtitleString:[[DOEnvironmentManager sharedManager] versionSupportString]],
+         [DOGlobalAppearance secondarySubtitleString:DOLocalizedString(@"Credits_Made_By")],
++        [DOGlobalAppearance secondarySubtitleString:[self systemVersionStatusString]],
++        [DOGlobalAppearance secondarySubtitleString:[self versionStatusString]],
++        [DOGlobalAppearance secondarySubtitleString:[self uptimeStatusString]],
++        [DOGlobalAppearance secondarySubtitleString:DOLocalizedString(@"Home_Slogan")],
+     ]];
++    self.headerView = headerView;
+     
+     [stackView addArrangedSubview:headerView];
  
- -(void)setupStack
-@@ -94,11 +101,13 @@
+@@ -94,11 +108,13 @@
          [UIAction actionWithTitle:DOLocalizedString(@"Menu_Restart_SpringBoard_Title") image:[UIImage systemImageNamed:@"arrow.clockwise" withConfiguration:[DOGlobalAppearance smallIconImageConfiguration]] identifier:@"respring" handler:^(__kindof UIAction * _Nonnull action) {
              [self fadeToBlack:^{
                  [[DOEnvironmentManager sharedManager] respring];
@@ -247,23 +318,14 @@ index 5ccc068..f3fe889 100644
              }];
          }],
          [UIAction actionWithTitle:DOLocalizedString(@"Menu_Credits_Title") image:[UIImage systemImageNamed:@"info.circle" withConfiguration:[DOGlobalAppearance smallIconImageConfiguration]] identifier:@"credits" handler:^(__kindof UIAction * _Nonnull action) {
-@@ -135,6 +144,7 @@
-     
-     self.jailbreakBtn = [[DOJailbreakButton alloc] initWithAction: [UIAction actionWithTitle:jailbreakButtonTitle image:jailbreakButtonImage identifier:@"jailbreak" handler:^(__kindof UIAction * _Nonnull action) {
-         [actionView hide];
-+        self.statusStack.hidden = YES;
-         [self.jailbreakBtn expandButton: self.jailbreakButtonConstraints];
- 
-         self.updateButton.userInteractionEnabled = NO;
-@@ -193,7 +203,137 @@
+@@ -193,7 +209,108 @@
  - (void)viewWillAppear:(BOOL)animated
  {
      [super viewWillAppear:animated];
 +    // Coming back from a respring that did not happen, make sure the UI is visible again
 +    [self restoreFromFade];
      [self.jailbreakBtn.button setTitle:[self jailbreakButtonTitle] forState:UIControlStateNormal];
-+    self.statusStack.hidden = self.jailbreakBtn.didExpand;
-+    [self refreshStatusInfo];
++    [self refreshUptimeStatus];
 +    [self startUptimeTimer];
 +}
 +
@@ -275,47 +337,19 @@ index 5ccc068..f3fe889 100644
 +
 +#pragma mark - Version / Uptime
 +
-+- (void)setupStatusInfo
++// Index of the "已运行" line inside DOHeaderView's subtitles
++static const NSUInteger DOHeaderUptimeLineIndex = 4;
++
++- (void)refreshUptimeStatus
 +{
-+    UILabel *versionLabel = [self statusLabel];
-+    UILabel *uptimeLabel = [self statusLabel];
-+    self.versionStatusLabel = versionLabel;
-+    self.uptimeStatusLabel = uptimeLabel;
-+
-+    UIStackView *statusStack = [[UIStackView alloc] initWithArrangedSubviews:@[versionLabel, uptimeLabel]];
-+    statusStack.axis = UILayoutConstraintAxisVertical;
-+    statusStack.alignment = UIStackViewAlignmentCenter;
-+    statusStack.spacing = 1;
-+    statusStack.translatesAutoresizingMaskIntoConstraints = NO;
-+    statusStack.userInteractionEnabled = NO;
-+    [self.view addSubview:statusStack];
-+    self.statusStack = statusStack;
-+
-+    [NSLayoutConstraint activateConstraints:@[
-+        [statusStack.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
-+        [statusStack.leadingAnchor constraintGreaterThanOrEqualToAnchor:self.view.leadingAnchor constant:UI_INNER_PADDING],
-+        [statusStack.trailingAnchor constraintLessThanOrEqualToAnchor:self.view.trailingAnchor constant:-UI_INNER_PADDING],
-+        [statusStack.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor constant:-6],
-+    ]];
++    [self.headerView updateSubtitleAtIndex:DOHeaderUptimeLineIndex withString:[self uptimeStatusString]];
 +}
 +
-+- (UILabel *)statusLabel
++- (NSString *)systemVersionStatusString
 +{
-+    UILabel *label = [[UILabel alloc] init];
-+    label.translatesAutoresizingMaskIntoConstraints = NO;
-+    label.font = [UIFont monospacedDigitSystemFontOfSize:11 weight:UIFontWeightMedium];
-+    label.textColor = [UIColor colorWithWhite:1.0 alpha:0.42];
-+    label.textAlignment = NSTextAlignmentCenter;
-+    label.adjustsFontSizeToFitWidth = YES;
-+    label.minimumScaleFactor = 0.75;
-+    label.userInteractionEnabled = NO;
-+    return label;
-+}
-+
-+- (void)refreshStatusInfo
-+{
-+    self.versionStatusLabel.text = [self versionStatusString];
-+    [self refreshUptimeStatus];
++    UIDevice *device = [UIDevice currentDevice];
++    NSString *systemVersion = [NSString stringWithFormat:@"%@ %@", device.systemName, device.systemVersion];
++    return [NSString stringWithFormat:DOLocalizedString(@"Home_System_Version"), systemVersion];
 +}
 +
 +- (NSString *)versionStatusString
@@ -330,8 +364,7 @@ index 5ccc068..f3fe889 100644
 +    static dispatch_once_t onceToken;
 +    dispatch_once(&onceToken, ^{
 +        dateFormatter = [[NSDateFormatter alloc] init];
-+        dateFormatter.dateStyle = NSDateFormatterShortStyle;
-+        dateFormatter.timeStyle = NSDateFormatterShortStyle;
++        dateFormatter.dateFormat = @"yyyy/M/d HH:mm";
 +    });
 +
 +    return [NSString stringWithFormat:DOLocalizedString(@"Home_Version_Updated"), version, [dateFormatter stringFromDate:buildDate]];
@@ -348,20 +381,21 @@ index 5ccc068..f3fe889 100644
 +    return attributes[NSFileModificationDate];
 +}
 +
-+- (void)refreshUptimeStatus
++- (NSString *)uptimeStatusString
 +{
-+    NSDateComponentsFormatter *formatter = [[NSDateComponentsFormatter alloc] init];
-+    formatter.unitsStyle = NSDateComponentsFormatterUnitsStyleFull;
-+    formatter.allowedUnits = NSCalendarUnitDay | NSCalendarUnitHour | NSCalendarUnitMinute;
-+    formatter.maximumUnitCount = 2;
-+    formatter.zeroFormattingBehavior = NSDateComponentsFormatterZeroFormattingBehaviorDropAll;
-+
-+    NSString *uptimeString = [formatter stringFromTimeInterval:[self systemUptime]];
-+    if (!uptimeString) {
-+        uptimeString = @"-";
++    NSTimeInterval uptime = [self systemUptime];
++    if (uptime < 0) {
++        uptime = 0;
 +    }
 +
-+    self.uptimeStatusLabel.text = [NSString stringWithFormat:DOLocalizedString(@"Home_Uptime"), uptimeString];
++    NSInteger totalSeconds = (NSInteger)uptime;
++    NSInteger days = totalSeconds / 86400;
++    NSInteger hours = (totalSeconds % 86400) / 3600;
++    NSInteger minutes = (totalSeconds % 3600) / 60;
++    NSInteger seconds = totalSeconds % 60;
++
++    NSString *uptimeString = [NSString stringWithFormat:@"%ld天 %ld时 %ld分 %ld秒", (long)days, (long)hours, (long)minutes, (long)seconds];
++    return [NSString stringWithFormat:DOLocalizedString(@"Home_Uptime"), uptimeString];
 +}
 +
 +- (NSTimeInterval)systemUptime
@@ -393,7 +427,7 @@ index 5ccc068..f3fe889 100644
  }
  
  - (void)startJailbreak
-@@ -354,10 +494,20 @@
+@@ -354,10 +471,20 @@
  
  - (void)fadeToBlack:(void (^)(void))completion
  {
@@ -417,7 +451,7 @@ index 5ccc068..f3fe889 100644
      UIView *mainView = self.parentViewController.view;
      float deviceCornerRadius = [[[UIScreen mainScreen] valueForKey:@"_displayCornerRadius"] floatValue];
  
-@@ -375,6 +525,37 @@
+@@ -375,6 +502,37 @@
      }];
  }
  
@@ -1134,18 +1168,18 @@ index 1b38976..61e8c73 100644
  
  @end
 diff --git a/Application/Dopamine/en.lproj/Localizable.strings b/Application/Dopamine/en.lproj/Localizable.strings
-index d3ca352..30b427b 100644
+index d3ca352..258f938 100644
 --- a/Application/Dopamine/en.lproj/Localizable.strings
 +++ b/Application/Dopamine/en.lproj/Localizable.strings
-@@ -129,3 +129,17 @@
+@@ -129,3 +129,19 @@
  "Status_Title_Select_Package_Managers" = "Select Package Manager(s)";
  "Select_Package_Managers_Install_Message" = "If you are unsure which one to select, select Sileo";
  "Continue" = "Continue";
 +
 +// Home screen status information
-+"Home_Version_Only" = "Version %@";
-+"Home_Version_Updated" = "Version %@ · Updated %@";
-+"Home_Uptime" = "System uptime %@";
++"Home_Version_Only" = "V%@";
++"Home_Version_Updated" = "V%@ · Updated %@";
++"Home_Uptime" = "Uptime: %@";
 +
 +// Theme background menu
 +"Background_Menu_Title" = "Theme Background";
@@ -1155,19 +1189,21 @@ index d3ca352..30b427b 100644
 +"Background_Error_Title" = "Unable to Set Background";
 +"Background_Error_No_Photo_Library" = "The photo library is not available on this device";
 +"Background_Updated" = "Theme background updated";
++"Home_System_Version" = "System version: %@";
++"Home_Slogan" = "Never give up the joy of jailbreaking~";
 diff --git a/Application/Dopamine/zh-CN.lproj/Localizable.strings b/Application/Dopamine/zh-CN.lproj/Localizable.strings
-index 32f5bd8..5ac069e 100644
+index 32f5bd8..57b5fd8 100644
 --- a/Application/Dopamine/zh-CN.lproj/Localizable.strings
 +++ b/Application/Dopamine/zh-CN.lproj/Localizable.strings
-@@ -124,3 +124,17 @@
+@@ -124,3 +124,19 @@
  "Status_Title_Select_Package_Managers" = "请选择包管理器";
  "Select_Package_Managers_Install_Message" = "如果你不确定选择哪一个比较好，请选择 Sileo";
  "Continue" = "继续";
 +
 +// 首页状态信息
-+"Home_Version_Only" = "版本 %@";
-+"Home_Version_Updated" = "版本 %@ · 更新于 %@";
-+"Home_Uptime" = "系统已运行 %@";
++"Home_Version_Only" = "V%@";
++"Home_Version_Updated" = "V%@ 更新于 %@";
++"Home_Uptime" = "已运行：%@";
 +
 +// 主题背景菜单
 +"Background_Menu_Title" = "主题背景";
@@ -1177,19 +1213,21 @@ index 32f5bd8..5ac069e 100644
 +"Background_Error_Title" = "无法设置背景";
 +"Background_Error_No_Photo_Library" = "当前设备无法访问相册";
 +"Background_Updated" = "主题背景已更新";
++"Home_System_Version" = "系统版本：%@";
++"Home_Slogan" = "不要为了升级而放弃越狱的乐趣~";
 diff --git a/Application/Dopamine/zh-Hans.lproj/Localizable.strings b/Application/Dopamine/zh-Hans.lproj/Localizable.strings
-index 32f5bd8..5ac069e 100644
+index 32f5bd8..57b5fd8 100644
 --- a/Application/Dopamine/zh-Hans.lproj/Localizable.strings
 +++ b/Application/Dopamine/zh-Hans.lproj/Localizable.strings
-@@ -124,3 +124,17 @@
+@@ -124,3 +124,19 @@
  "Status_Title_Select_Package_Managers" = "请选择包管理器";
  "Select_Package_Managers_Install_Message" = "如果你不确定选择哪一个比较好，请选择 Sileo";
  "Continue" = "继续";
 +
 +// 首页状态信息
-+"Home_Version_Only" = "版本 %@";
-+"Home_Version_Updated" = "版本 %@ · 更新于 %@";
-+"Home_Uptime" = "系统已运行 %@";
++"Home_Version_Only" = "V%@";
++"Home_Version_Updated" = "V%@ 更新于 %@";
++"Home_Uptime" = "已运行：%@";
 +
 +// 主题背景菜单
 +"Background_Menu_Title" = "主题背景";
@@ -1199,19 +1237,21 @@ index 32f5bd8..5ac069e 100644
 +"Background_Error_Title" = "无法设置背景";
 +"Background_Error_No_Photo_Library" = "当前设备无法访问相册";
 +"Background_Updated" = "主题背景已更新";
++"Home_System_Version" = "系统版本：%@";
++"Home_Slogan" = "不要为了升级而放弃越狱的乐趣~";
 diff --git a/Application/Dopamine/zh-TW.lproj/Localizable.strings b/Application/Dopamine/zh-TW.lproj/Localizable.strings
-index 9943c2f..113800f 100644
+index 9943c2f..172d388 100644
 --- a/Application/Dopamine/zh-TW.lproj/Localizable.strings
 +++ b/Application/Dopamine/zh-TW.lproj/Localizable.strings
-@@ -129,3 +129,17 @@
+@@ -129,3 +129,19 @@
  "Status_Title_Select_Package_Managers" = "選擇套件管理器";
  "Select_Package_Managers_Install_Message" = "如果不確定該選哪一個，請選擇 Sileo";
  "Continue" = "繼續";
 +
 +// 首頁狀態資訊
-+"Home_Version_Only" = "版本 %@";
-+"Home_Version_Updated" = "版本 %@ · 更新於 %@";
-+"Home_Uptime" = "系統已運行 %@";
++"Home_Version_Only" = "V%@";
++"Home_Version_Updated" = "V%@ 更新於 %@";
++"Home_Uptime" = "已運行：%@";
 +
 +// 主題背景選單
 +"Background_Menu_Title" = "主題背景";
@@ -1221,3 +1261,5 @@ index 9943c2f..113800f 100644
 +"Background_Error_Title" = "無法設定背景";
 +"Background_Error_No_Photo_Library" = "目前裝置無法存取相簿";
 +"Background_Updated" = "主題背景已更新";
++"Home_System_Version" = "系統版本：%@";
++"Home_Slogan" = "不要為了升級而放棄越獄的樂趣~";
