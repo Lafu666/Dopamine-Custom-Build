@@ -6,11 +6,13 @@
 
 | 路径 | 说明 |
 |---|---|
-| `patches/dopamine-3.x-custom.patch` | 三项改动的 git 补丁（13 文件，+633/-4） |
+| `patches/dopamine-3.x-custom.patch` | 两项改动的 git 补丁（10 文件，+329/-3） |
 | `debs/*.deb` | 越狱时自动预装的 6 个包 |
 | `.github/workflows/build-ipa.yml` | 构建流程 |
 
-三项改动：首页长按背景自定义/恢复主题背景、首页显示版本更新时间与系统运行时间、越狱时自动预装 ellekit / preferenceloader / altlist / libsandy / choicy / trollstorelite。
+两项改动：首页标题区显示系统版本 / 版本更新于 / 系统运行时间 / 标语，越狱时自动预装 ellekit / preferenceloader / altlist / libsandy / choicy / trollstorelite。
+
+（自定义主题背景功能已移除：长按换壁纸真机不生效，相关代码、相册权限与文案已全部删除。）
 
 ## 状态
 
